@@ -35,6 +35,10 @@ public class QuickHull3D
 
     protected bool debug = false;
 
+    protected Vector3[] pointBuffer = new Vector3[0];
+    protected int[] vertexPointIndices = new int[0];
+    private Face[] discardedFaces = new Face[3];
+
 
     public void Build(Vector3[] points)
     {

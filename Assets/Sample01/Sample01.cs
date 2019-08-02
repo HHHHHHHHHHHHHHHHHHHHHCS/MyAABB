@@ -27,20 +27,21 @@ public class Sample01 : MonoBehaviour
         }
     }
 
-    private void Add(float? x = null, float? z = null)
+    private void Add(float? x = null, float? y = null)
     {
-        Vector3 v3 = Random.insideUnitCircle * 10;
-        if (x == null)
+        Vector2 v2 = Random.insideUnitCircle * 10;
+        if (x != null)
         {
-            x = v3.x;
+            v2.x = x.Value;
         }
 
-        if (z == null)
+        if (y != null)
         {
-            z = v3.y;
+            v2.y = y.Value;
+
         }
 
-        vec2s.Add(new Vector2(x.Value, z.Value));
+        vec2s.Add(v2);
     }
 
     private void OnDrawGizmos()
