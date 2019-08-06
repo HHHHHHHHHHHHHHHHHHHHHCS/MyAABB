@@ -15,7 +15,7 @@ public class HalfEdge
     /// <summary>
     /// 跟这个边有关的三角面
     /// </summary>
-    private Face face;
+    public Face Face { get; set; }
 
     /// <summary>
     /// 三角面的下面一条边
@@ -55,6 +55,12 @@ public class HalfEdge
     /// </summary>
     public Vertex Tail => Prev?.vertex;
 
+    /// <summary>
+    /// 得到对边的面
+    /// </summary>
+    /// <returns></returns>
+    public Face OppositeFace=> opposite?.Face;
+
     public HalfEdge()
     {
     }
@@ -67,7 +73,7 @@ public class HalfEdge
     public HalfEdge(Vertex v, Face f)
     {
         vertex = v;
-        face = f;
+        Face = f;
     }
 
     /// <summary>

@@ -21,7 +21,7 @@ public class Sample02 : MonoBehaviour
     {
         Vector3[] pointArray = AddPointData();
         QuickHull3D hull = new QuickHull3D();
-        hull.Build(pointArray);
+        hull.Build((float[]) pointArray);
 
         Vector3[] vertices = hull.GetVertices();
 
