@@ -206,7 +206,7 @@ public class Face
 
         he0.Prev = he2;
         he0.Next = he1;
-        he1.Prev = he1;
+        he1.Prev = he0;
         he1.Next = he2;
         he2.Prev = he1;
         he2.Next = he0;
@@ -239,6 +239,7 @@ public class Face
         }
 
         face.he0.Prev = hePrev;
+        hePrev.Next = face.he0;
         face.ComputeNormalAndCentroid();
         return face;
     }
@@ -406,13 +407,12 @@ public class Face
 
                 hedgeOpp.Prev = hedgeOpp.Prev.Prev;
                 hedge.Prev.Next = hedge;
-
-                hedge.Opposite = hedgeOpp;
-                hedgeOpp.Opposite = hedge;
-
-                //面被修改了 所以需要重新计算
-                oppFace.ComputeNormalAndCentroid();
             }
+
+            hedge.Opposite = hedgeOpp;
+
+            //面被修改了 所以需要重新计算
+            oppFace.ComputeNormalAndCentroid();
         }
         else
         {
@@ -454,10 +454,7 @@ public class Face
                     " has opposite " +
                     hedgeOpp.Opposite.GetVertexString());
             }
-            Debug.Log((
-                "face " + GetVertexString() + ": " +
-                " half edge " + hedge.GetVertexString() +
-                " reflected by " + hedgeOpp.GetVertexString()));
+
             if (hedgeOpp.Head != hedge.Tail || hedge.Head != hedgeOpp.Tail)
             {
                 throw new Exception(

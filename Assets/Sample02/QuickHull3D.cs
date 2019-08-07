@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
@@ -57,6 +58,7 @@ public class QuickHull3D
     private Face[] discardedFaces = new Face[3];
 
     protected List<Face> faces = new List<Face>(16);
+
     protected List<HalfEdge> horizon = new List<HalfEdge>(16);
 
 
@@ -220,7 +222,6 @@ public class QuickHull3D
 
                 he = he.Next;
             } while (he != face.HE0);
-
             faces.Add(face);
         }
     }
@@ -805,8 +806,8 @@ public class QuickHull3D
             Face face = faces[i];
             allFaces[k] = new int[face.NumVertices];
             GetFaceIndices(allFaces[k], face, indexFlags);
+            k++;
         }
-
         return allFaces;
     }
 
@@ -1084,6 +1085,7 @@ public class QuickHull3D
         face.Mark = Face.c_deleted;
         if (IsDebug)
         {
+            Debug.Log("  visiting edge0 " + (edge0==null ? "null" : edge0.GetVertexString()));
             Debug.Log("  visiting face " + face.GetVertexString());
         }
 
@@ -1096,6 +1098,11 @@ public class QuickHull3D
         else
         {
             edge = edge0.Next;
+        }
+
+        if (IsDebug)
+        {
+            Debug.Log("    edge: " + (edge0 == null ? "null" : edge0.GetVertexString()));
         }
 
         do
@@ -1296,9 +1303,6 @@ public class QuickHull3D
 
         //删除非活动面并标记活动顶点
         numFaces = 0;
-        foreach (var face in faces)
-        {
-        }
 
         for (int i = faces.Count - 1; i >= 0; i--)
         {
