@@ -22,7 +22,7 @@ public class VertexList
     /// 添加顶点到顶点链表
     /// </summary>
     /// <param name="vtx"></param>
-    public void add(Vertex vtx)
+    public void Add(Vertex vtx)
     {
         if (head == null)
         {
@@ -38,7 +38,7 @@ public class VertexList
     }
 
     /// <summary>
-    /// 添加顶点到顶点链表 并且重新遍历一下
+    /// 添加顶点链表 到当前顶点链表 并且重新遍历一下
     /// </summary>
     /// <param name="vtx"></param>
     public void AddAll(Vertex vtx)
@@ -131,7 +131,7 @@ public class VertexList
     /// <summary>
     /// 返回头节点
     /// </summary>
-    public Vertex first => head;
+    public Vertex First => head;
 
     /// <summary>
     /// 是否是空的

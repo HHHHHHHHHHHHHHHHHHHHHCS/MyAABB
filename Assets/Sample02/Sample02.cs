@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 
 public static class ExMethod
@@ -21,11 +22,30 @@ public class Sample02 : MonoBehaviour
     {
         Vector3[] pointArray = AddPointData();
         QuickHull3D hull = new QuickHull3D();
-        hull.Build((float[]) pointArray);
+        hull.Build(pointArray);
 
+        StringBuilder sb = new StringBuilder();
+        sb.Append("Vertices:");
         Vector3[] vertices = hull.GetVertices();
+        foreach (var vert in vertices)
+        {
+            sb.Append(vert.ToString());
+        }
+        Debug.Log(sb.ToString());
 
+        sb.Clear();
+        sb.Append("Faces:");
         int[][] faceIndices = hull.GetFaces();
+        foreach (var faceIndex in faceIndices)
+        {
+            foreach (var index in faceIndex)
+            {
+                sb.Append(index.ToString() + " ");
+            }
+
+            sb.Append('\n');
+        }
+        Debug.Log(sb.ToString());
     }
 
 

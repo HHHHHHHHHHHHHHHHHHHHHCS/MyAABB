@@ -66,7 +66,7 @@ public class Face
     /// <summary>
     /// 当前的状态
     /// </summary>
-    private int mark = c_visible;
+    public int Mark { get; set; } = c_visible;
 
     /// <summary>
     /// 平面上一个特别的点
@@ -79,9 +79,9 @@ public class Face
     public HalfEdge HE0 => he0;
 
     /// <summary>
-    /// 当前面片的状态
+    /// 面积
     /// </summary>
-    public int Mark => mark;
+    public float Area => area;
 
     public void ComputeCentroid()
     {
@@ -247,7 +247,7 @@ public class Face
     {
         normal = Vector3.zero;
         centroid = Vector3.zero;
-        mark = c_visible;
+        Mark = c_visible;
     }
 
     /// <summary>
@@ -331,7 +331,7 @@ public class Face
     /// 得到顶点的String
     /// </summary>
     /// <returns></returns>
-    private string GetVertexString()
+    public string GetVertexString()
     {
         string s = null;
         HalfEdge he = he0;
@@ -392,7 +392,7 @@ public class Face
                 //这样就可以完全覆盖了
                 hedgeOpp = hedge.Opposite.Prev.Opposite;
 
-                oppFace.mark = c_deleted;
+                oppFace.Mark = c_deleted;
                 discardedFace = oppFace;
             }
             else
@@ -426,7 +426,7 @@ public class Face
     /// <summary>
     /// 检查是否是一个平面
     /// </summary>
-    private void CheckConsistency()
+    public void CheckConsistency()
     {
         HalfEdge hedge = he0;
         float maxd = 0;
@@ -454,13 +454,15 @@ public class Face
                     " has opposite " +
                     hedgeOpp.Opposite.GetVertexString());
             }
-
-            if (hedgeOpp.Head != hedge.Tail ||
-                hedge.Head != hedgeOpp.Tail)
+            Debug.Log((
+                "face " + GetVertexString() + ": " +
+                " half edge " + hedge.GetVertexString() +
+                " reflected by " + hedgeOpp.GetVertexString()));
+            if (hedgeOpp.Head != hedge.Tail || hedge.Head != hedgeOpp.Tail)
             {
                 throw new Exception(
                     "face " + GetVertexString() + ": " +
-                    "half edge " + hedge.GetVertexString() +
+                    " half edge " + hedge.GetVertexString() +
                     " reflected by " + hedgeOpp.GetVertexString());
             }
 
@@ -471,7 +473,7 @@ public class Face
                     "face " + GetVertexString() + ": " +
                     "no face on half edge " + hedgeOpp.GetVertexString());
             }
-            else if (oppFace.mark == c_deleted)
+            else if (oppFace.Mark == c_deleted)
             {
                 throw new Exception(
                     "face " + GetVertexString() + ": " +
@@ -502,13 +504,13 @@ public class Face
     /// <param name="hedgeAdj"></param>
     /// <param name="discarded"></param>
     /// <returns></returns>
-    public int mergeAdjacentFace(HalfEdge hedgeAdj, Face[] discarded)
+    public int MergeAdjacentFace(HalfEdge hedgeAdj, Face[] discarded)
     {
         Face oppFace = hedgeAdj.OppositeFace;
         int numDiscarded = 0;
 
         discarded[numDiscarded++] = oppFace;
-        oppFace.mark = c_deleted;
+        oppFace.Mark = c_deleted;
 
         HalfEdge hedgeOpp = hedgeAdj.Opposite;
 
