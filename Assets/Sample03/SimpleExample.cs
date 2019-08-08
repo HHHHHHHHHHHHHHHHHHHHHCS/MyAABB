@@ -15,15 +15,15 @@ namespace QHull
  */
     public class SimpleExample : MonoBehaviour
     {
-        public MeshFilter mesh;
-        public GameObject prefab_s,prefab_m;
+        public MeshFilter ori, col;
+        public GameObject prefab_s, prefab_m;
 
         /**
          * Run for a simple demonstration of QuickHull3D.
          */
         public void Awake()
         {
-            Vector3[] v3s = mesh.mesh.vertices;
+            Vector3[] v3s = ori.mesh.vertices;
             AABB aabb = new AABB();
             var abps = aabb.Build(v3s);
             var points = ToPoint3d(abps.ToArray());
@@ -49,16 +49,26 @@ namespace QHull
 
             Debug.Log(sb.ToString());
 
+
             sb.Clear();
+            List<int> faces = new List<int>();
             int[][] faceIndices = hull.getFaces();
             sb.Append($"Faces:{vertices.Length}\n");
             for (int i = 0; i < vertices.Length; i++)
             {
-                for (int k = 0; i < faceIndices.Length && k < faceIndices[i].Length; k++)
+                for (int j = 0; i < faceIndices.Length && j < faceIndices[i].Length; j++)
                 {
-                    sb.Append($"{faceIndices[i][k]} ");
+                    sb.Append($"{faceIndices[i][j]} ");
+                    if (j >= 2)
+                    {
+                        faces.Add(faceIndices[i][0]);
+                        for (int k = -2; k <= 0; k++)
+                        {
+                            faces.Add(faceIndices[i][j + k]);
+                        }
+                    }
 
-                    Instantiate(prefab_m, ToVector3(vertices[faceIndices[i][k]]), Quaternion.identity);
+                    Instantiate(prefab_m, ToVector3(vertices[faceIndices[i][j]]), Quaternion.identity);
                 }
 
                 sb.Append('\n');
@@ -66,6 +76,10 @@ namespace QHull
 
             Debug.Log(sb.ToString());
             sb.Clear();
+
+
+            Mesh mesh = new Mesh {vertices = ToVector3(vertices), triangles = faces.ToArray()};
+            col.mesh = mesh;
         }
 
         public static Point3d[] ToPoint3d(Vector3[] v3s)
@@ -83,6 +97,17 @@ namespace QHull
         public static Vector3 ToVector3(Point3d p3d)
         {
             return new Vector3((float) p3d.x, (float) p3d.y, (float) p3d.z);
+        }
+
+        public static Vector3[] ToVector3(Point3d[] p3ds)
+        {
+            Vector3[] v3s = new Vector3[p3ds.Length];
+            for (int i = 0; i < p3ds.Length; i++)
+            {
+                v3s[i] = ToVector3(p3ds[i]);
+            }
+
+            return v3s;
         }
     }
 }

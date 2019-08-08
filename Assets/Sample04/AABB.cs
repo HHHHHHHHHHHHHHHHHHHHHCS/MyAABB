@@ -32,7 +32,37 @@ public class AABB
         {
             endPoints.AddRange(box.GetEightPoints());
         }
-        //TODO:判断重复的点
+
+        RemoveRepeatedPoint(endPoints);
         return endPoints;
+    }
+
+    /// <summary>
+    /// 删除重复的点 虽然在QHull中也会判断 提前剪枝
+    /// </summary>
+    /// <param name="eps"></param>
+    public void RemoveRepeatedPoint(List<Vector3> eps)
+    {
+        List<int> removIndexs = new List<int>();
+        Vector3 v3 = Vector3.zero;
+        for (int i = eps.Count -1; i >= 0; i--)
+        {
+            if (removIndexs.Contains(i))
+            {
+                continue;
+            }
+
+            var oriPoint = eps[i];
+            for (int j = i - 1; j >= 0; j--)
+            {
+                v3.x = Mathf.Abs(oriPoint.x - eps[j].x);
+                v3.y = Mathf.Abs(oriPoint.y - eps[j].y);
+                v3.z = Mathf.Abs(oriPoint.z - eps[j].z);
+                if ((v3.x + v3.y + v3.z) <= 0.0001f)
+                {
+                    removIndexs.Add(j);
+                }
+            }
+        }
     }
 }
