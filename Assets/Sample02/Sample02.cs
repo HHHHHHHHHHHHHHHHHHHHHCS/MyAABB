@@ -30,9 +30,9 @@ namespace QHull
             Debug.Log("Ori Vertex Count:" + v3s.Length);
 
             QuickHull3D hull = new QuickHull3D();
-            hull.build(ToPoint3d(points));
+            hull.Build(ToPoint3d(points));
 
-            Vector3[] vertices = hull.getVertices();
+            Vector3[] vertices = hull.GetVertices();
             StringBuilder sb = new StringBuilder();
             sb.Append($"Vertices:{vertices.Length}\n");
             for (int i = 0; i < vertices.Length; i++)
@@ -46,7 +46,7 @@ namespace QHull
 
             sb.Clear();
             List<int> faces = new List<int>();
-            int[][] faceIndices = hull.getFaces();
+            int[][] faceIndices = hull.GetFaces();
             sb.Append($"Faces:{vertices.Length}\n");
             for (int i = 0; i < vertices.Length; i++)
             {

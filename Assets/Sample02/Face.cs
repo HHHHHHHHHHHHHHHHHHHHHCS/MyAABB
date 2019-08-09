@@ -1,81 +1,117 @@
-/*
- * Copyright John E. Lloyd, 2003. All rights reserved. Permission
- * to use, copy, and modify, without fee, is granted for non-commercial
- * and research purposes, provided that this copyright notice appears
- * in all copies.
- *
- * This  software is distributed "as is", without any warranty, including
- * any implied warranty of merchantability or fitness for a particular
- * use. The authors assume no responsibility for, and shall not be liable
- * for, any special, indirect, or consequential damages, or any damages
- * whatsoever, arising out of or in connection with the use of this
- * software.
- */
-
-using UnityEngine;
 
 namespace QHull
 {
+    using UnityEngine;
     using System;
 
-/**
- * Basic triangular face used to form the hull.
- *
- * <p>The information stored for each face consists of a planar
- * normal, a planar offset, and a doubly-linked list of three <a
- * href=HalfEdge>HalfEdges</a> which surround the face in a
- * counter-clockwise direction.
- *
- * @author John E. Lloyd, Fall 2004
- */
+    /// <summary>
+    /// 面
+    /// </summary>
     public class Face
     {
+        /// <summary>
+        /// 第0条边
+        /// </summary>
         public HalfEdge he0;
+
+        /// <summary>
+        /// 法线
+        /// </summary>
         public Vector3 normal;
+
+        /// <summary>
+        /// 面积
+        /// </summary>
         public double area;
+
+        /// <summary>
+        /// 中心点
+        /// </summary>
         public Vector3 centroid;
+
+        /// <summary>
+        /// 面板偏移
+        /// </summary>
         public double planeOffset;
+
+        /// <summary>
+        /// face的Index
+        /// </summary>
         public int index;
+
+        /// <summary>
+        /// 面上顶点的数量
+        /// </summary>
         public int numVerts;
 
+        /// <summary>
+        /// 链表下一个面片
+        /// </summary>
         public Face next;
 
-        public const int VISIBLE = 1;
-        public const int NON_CONVEX = 2;
-        public const int DELETED = 3;
 
-        public int mark = VISIBLE;
+        /// <summary>
+        /// 状态:可见的
+        /// </summary>
+        public const int c_Visible = 1;
 
+        /// <summary>
+        /// 状态:不是凸出的形状
+        /// </summary>
+        public const int c_NoneConvex = 2;
+
+        /// <summary>
+        /// 状态:删除的
+        /// </summary>
+        public const int c_Deleted = 3;
+
+        /// <summary>
+        /// 当前的状态
+        /// </summary>
+        public int mark = c_Visible;
+
+        /// <summary>
+        /// 外面的顶点
+        /// </summary>
         public Vertex outside;
 
-        public void computeCentroid()
+        /// <summary>
+        /// 计算中心点
+        /// </summary>
+        /// <param name="centroid"></param>
+        public void ComputeCentroid()
         {
             centroid.x = centroid.y= centroid.z =0;
             HalfEdge he = he0;
             do
             {
-                centroid+=(he.head().pnt);
+                centroid+=(he.Head.pnt);
                 he = he.next;
             } while (he != he0);
 
             centroid/=  numVerts;
         }
 
-        public void computeNormal( double minArea)
+        /// <summary>
+        /// 计算法线 根据最小的面积
+        /// </summary>
+        /// <param name="normal"></param>
+        /// <param name="minArea"></param>
+        public void ComputeNormal( double minArea)
         {
-            computeNormal();
+            ComputeNormal();
 
             if (area < minArea)
             {
-                // make the normal more robust by removing
-                // components parallel to the longest edge
+                //用来处理四边形以上的时候,不再一个平面的法线
+                //通过删除最长的边 来让法线更准确
 
                 HalfEdge hedgeMax = null;
                 double lenSqrMax = 0;
                 HalfEdge hedge = he0;
                 do
                 {
-                    double lenSqr = hedge.lengthSquared();
+                    double lenSqr = hedge.LengthSquared();
                     if (lenSqr > lenSqrMax)
                     {
                         hedgeMax = hedge;
@@ -85,8 +121,8 @@ namespace QHull
                     hedge = hedge.next;
                 } while (hedge != he0);
 
-                Vector3 p2 = hedgeMax.head().pnt;
-                Vector3 p1 = hedgeMax.tail().pnt;
+                Vector3 p2 = hedgeMax.Head.pnt;
+                Vector3 p1 = hedgeMax.Tail.pnt;
                 double lenMax = Math.Sqrt(lenSqrMax);
                 double ux = (p2.x - p1.x) / lenMax;
                 double uy = (p2.y - p1.y) / lenMax;
@@ -100,13 +136,16 @@ namespace QHull
             }
         }
 
-        public void computeNormal()
+        /// <summary>
+        /// 计算法线
+        /// </summary>
+        public void ComputeNormal()
         {
             HalfEdge he1 = he0.next;
             HalfEdge he2 = he1.next;
 
-            Vector3 p0 = he0.head().pnt;
-            Vector3 p2 = he1.head().pnt;
+            Vector3 p0 = he0.Head.pnt;
+            Vector3 p2 = he1.Head.pnt;
 
             double d2x = p2.x - p0.x;
             double d2y = p2.y - p0.y;
@@ -122,7 +161,7 @@ namespace QHull
                 double d1y = d2y;
                 double d1z = d2z;
 
-                p2 = he2.head().pnt;
+                p2 = he2.Head.pnt;
                 d2x = p2.x - p0.x;
                 d2y = p2.y - p0.y;
                 d2z = p2.z - p0.z;
@@ -136,14 +175,19 @@ namespace QHull
                 numVerts++;
             }
 
+
+            //叉积的绝对值的一半 是面积
             area = normal.magnitude;
             normal/=(float)area;
         }
 
-        private void computeNormalAndCentroid()
+        /// <summary>
+        /// 计算法线和中心点
+        /// </summary>
+        private void ComputeNormalAndCentroid()
         {
-            computeNormal();
-            computeCentroid();
+            ComputeNormal();
+            ComputeCentroid();
             planeOffset =Vector3.Dot(normal, centroid);
             int numv = 0;
             HalfEdge he = he0;
@@ -156,30 +200,41 @@ namespace QHull
             if (numv != numVerts)
             {
                 throw new Exception(
-                    "face " + getVertexString() + " numVerts=" + numVerts + " should be " + numv);
+                    "face " + GetVertexString() + " numVerts=" + numVerts + " should be " + numv);
             }
         }
 
-        private void computeNormalAndCentroid(double minArea)
+        /// <summary>
+        /// 计算法线和中心点
+        /// </summary>
+        private void ComputeNormalAndCentroid(double minArea)
         {
-            computeNormal( minArea);
-            computeCentroid();
+            ComputeNormal( minArea);
+            ComputeCentroid();
             planeOffset = Vector3.Dot(normal,centroid);
         }
 
-        public static Face createTriangle(Vertex v0, Vertex v1, Vertex v2)
+        /// <summary>
+        /// 创建三角面
+        /// </summary>
+        /// <param name="v0"></param>
+        /// <param name="v1"></param>
+        /// <param name="v2"></param>
+        /// <returns></returns>
+        public static Face CreateTriangle(Vertex v0, Vertex v1, Vertex v2)
         {
-            return createTriangle(v0, v1, v2, 0);
+            return CreateTriangle(v0, v1, v2, 0);
         }
 
-        /**
-         * Constructs a triangule Face from vertices v0, v1, and v2.
-         *
-         * @param v0 first vertex
-         * @param v1 second vertex
-         * @param v2 third vertex
-         */
-        public static Face createTriangle(Vertex v0, Vertex v1, Vertex v2,
+        /// <summary>
+        /// 创建三角面
+        /// </summary>
+        /// <param name="v0"></param>
+        /// <param name="v1"></param>
+        /// <param name="v2"></param>
+        /// <param name="minArea"></param>
+        /// <returns></returns>
+        public static Face CreateTriangle(Vertex v0, Vertex v1, Vertex v2,
             double minArea)
         {
             Face face = new Face();
@@ -196,12 +251,18 @@ namespace QHull
 
             face.he0 = he0;
 
-            // compute the normal and offset
-            face.computeNormalAndCentroid(minArea);
+            //计算法线 中心点  和 偏移
+            face.ComputeNormalAndCentroid(minArea);
             return face;
         }
 
-        public static Face create(Vertex[] vtxArray, int[] indices)
+        /// <summary>
+        /// 根据定的顶点和索引 创建面片
+        /// </summary>
+        /// <param name="vtxArray"></param>
+        /// <param name="indices"></param>
+        /// <returns></returns>
+        public static Face Create(Vertex[] vtxArray, int[] indices)
         {
             Face face = new Face();
             HalfEdge hePrev = null;
@@ -210,8 +271,8 @@ namespace QHull
                 HalfEdge he = new HalfEdge(vtxArray[indices[i]], face);
                 if (hePrev != null)
                 {
-                    he.setPrev(hePrev);
-                    hePrev.setNext(he);
+                    he.Prev=(hePrev);
+                    hePrev.Next=(he);
                 }
                 else
                 {
@@ -221,11 +282,12 @@ namespace QHull
                 hePrev = he;
             }
 
-            face.he0.setPrev(hePrev);
-            hePrev.setNext(face.he0);
+            face.he0.Prev=(hePrev);
+            hePrev.Next=(face.he0);
 
-            // compute the normal and offset
-            face.computeNormalAndCentroid();
+            //计算法线 中心点  和 偏移
+
+            face.ComputeNormalAndCentroid();
             return face;
         }
 
@@ -233,16 +295,15 @@ namespace QHull
         {
             normal = new Vector3();
             centroid = new Vector3();
-            mark = VISIBLE;
+            mark = c_Visible;
         }
 
-        /**
-         * Gets the i-th half-edge associated with the face.
-         *
-         * @param i the half-edge index, in the range 0-2.
-         * @return the half-edge
-         */
-        public HalfEdge getEdge(int i)
+        /// <summary>
+        /// 得到指定索引的边
+        /// </summary>
+        /// <param name="i"></param>
+        /// <returns></returns>
+        public HalfEdge GetEdge(int i)
         {
             HalfEdge he = he0;
             while (i > 0)
@@ -260,25 +321,27 @@ namespace QHull
             return he;
         }
 
-        public HalfEdge getFirstEdge()
+        /// <summary>
+        /// 得到第一条边
+        /// </summary>
+        /// <returns></returns>
+        public HalfEdge GetFirstEdge()
         {
             return he0;
         }
 
-        /**
-         * Finds the half-edge within this face which has
-         * tail <code>vt</code> and head <code>vh</code>.
-         *
-         * @param vt tail point
-         * @param vh head point
-         * @return the half-edge, or null if none is found.
-         */
-        public HalfEdge findEdge(Vertex vt, Vertex vh)
+        /// <summary>
+        /// 根据头尾两个点,得到边
+        /// </summary>
+        /// <param name="vt"></param>
+        /// <param name="vh"></param>
+        /// <returns></returns>
+        public HalfEdge FindEdge(Vertex vt, Vertex vh)
         {
             HalfEdge he = he0;
             do
             {
-                if (he.head() == vh && he.tail() == vt)
+                if (he.Head == vh && he.Tail == vt)
                 {
                     return he;
                 }
@@ -289,39 +352,41 @@ namespace QHull
             return null;
         }
 
-        /**
-         * Computes the distance from a point p to the plane of
-         * this face.
-         *
-         * @param p the point
-         * @return distance from the point to the plane
-         */
-        public double distanceToPlane(Vector3 p)
+        /// <summary>
+        /// 点到面片的距离
+        /// </summary>
+        /// <param name="p"></param>
+        /// <returns></returns>
+        public double DistanceToPlane(Vector3 p)
         {
             return normal.x * p.x + normal.y * p.y + normal.z * p.z - planeOffset;
         }
 
-        /**
-         * Returns the normal of the plane associated with this face.
-         *
-         * @return the planar normal
-         */
-        public Vector3 getNormal()
+        /// <summary>
+        /// 法线
+        /// </summary>
+        public Vector3 Normal => normal;
+
+        /// <summary>
+        /// 中心点
+        /// </summary>
+        public Vector3 Centroid => centroid;
+
+        /// <summary>
+        /// 顶点的数量
+        /// </summary>
+        public int NumVertices => numVerts;
+
+        /// <summary>
+        /// 输出信息
+        /// </summary>
+        /// <returns></returns>
+        public String GetVertexString()
         {
-            return normal;
+            return ToString();
         }
 
-        public Vector3 getCentroid()
-        {
-            return centroid;
-        }
-
-        public int numVertices()
-        {
-            return numVerts;
-        }
-
-        public String getVertexString()
+        public override string ToString()
         {
             String s = null;
             HalfEdge he = he0;
@@ -329,11 +394,11 @@ namespace QHull
             {
                 if (s == null)
                 {
-                    s = "" + he.head().index;
+                    s = "" + he.Head.index;
                 }
                 else
                 {
-                    s += " " + he.head().index;
+                    s += " " + he.Head.index;
                 }
 
                 he = he.next;
@@ -342,27 +407,35 @@ namespace QHull
             return s;
         }
 
-        public void getVertexIndices(int[] idxs)
+        /// <summary>
+        /// 得到顶点索引
+        /// </summary>
+        /// <param name="idxs"></param>
+        public void GetVertexIndices(int[] idxs)
         {
             HalfEdge he = he0;
             int i = 0;
             do
             {
-                idxs[i++] = he.head().index;
+                idxs[i++] = he.Head.index;
                 he = he.next;
             } while (he != he0);
         }
 
-        private Face connectHalfEdges(
-            HalfEdge hedgePrev, HalfEdge hedge)
+        /// <summary>
+        /// 连接两条边
+        /// </summary>
+        /// <param name="hedgePrev"></param>
+        /// <param name="hedge"></param>
+        /// <returns></returns>
+        private Face ConnectHalfEdges(HalfEdge hedgePrev, HalfEdge hedge)
         {
             Face discardedFace = null;
 
-            if (hedgePrev.oppositeFace() == hedge.oppositeFace())
+            if (hedgePrev.OppositeFace == hedge.OppositeFace)
             {
-                // then there is a redundant edge that we can get rid off
-
-                Face oppFace = hedge.oppositeFace();
+                //然后去掉一个多余的边缘
+                Face oppFace = hedge.OppositeFace;
                 HalfEdge hedgeOpp;
 
                 if (hedgePrev == he0)
@@ -370,16 +443,17 @@ namespace QHull
                     he0 = hedge;
                 }
 
-                if (oppFace.numVertices() == 3)
+                if (oppFace.NumVertices == 3)
                 {
-                    hedgeOpp = hedge.getOpposite().prev.getOpposite();
+                    //这样就可以完全覆盖了
+                    hedgeOpp = hedge.Opposite.prev.Opposite;
 
-                    oppFace.mark = DELETED;
+                    oppFace.mark = c_Deleted;
                     discardedFace = oppFace;
                 }
                 else
                 {
-                    hedgeOpp = hedge.getOpposite().next;
+                    hedgeOpp = hedge.Opposite.next;
 
                     if (oppFace.he0 == hedgeOpp.prev)
                     {
@@ -393,10 +467,10 @@ namespace QHull
                 hedge.prev = hedgePrev.prev;
                 hedge.prev.next = hedge;
 
-                hedge.setOpposite(hedgeOpp);
+                hedge.Opposite=(hedgeOpp);
 
-                // oppFace was modified, so need to recompute
-                oppFace.computeNormalAndCentroid();
+                //面被修改了 所以需要重新计算
+                oppFace.ComputeNormalAndCentroid();
             }
             else
             {
@@ -407,42 +481,44 @@ namespace QHull
             return discardedFace;
         }
 
-        void checkConsistency()
+
+        /// <summary>
+        /// 检查是否是一个平面
+        /// </summary>
+        private void CheckConsistency()
         {
-            // do a sanity check on the face
+            //在面上做检查
             HalfEdge hedge = he0;
             double maxd = 0;
             int numv = 0;
 
             if (numVerts < 3)
             {
-                throw new Exception(
-                    "degenerate face: " + getVertexString());
+                throw new Exception("degenerate face: " + GetVertexString());
             }
 
             do
             {
-                HalfEdge hedgeOpp = hedge.getOpposite();
+                HalfEdge hedgeOpp = hedge.Opposite;
                 if (hedgeOpp == null)
                 {
-                    throw new Exception(
-                        "face " + getVertexString() + ": " +
+                    throw new Exception("face " + GetVertexString() + ": " +
                         "unreflected half edge " + hedge.getVertexString());
                 }
-                else if (hedgeOpp.getOpposite() != hedge)
+                else if (hedgeOpp.Opposite != hedge)
                 {
                     throw new Exception(
-                        "face " + getVertexString() + ": " +
+                        "face " + GetVertexString() + ": " +
                         "opposite half edge " + hedgeOpp.getVertexString() +
                         " has opposite " +
-                        hedgeOpp.getOpposite().getVertexString());
+                        hedgeOpp.Opposite.getVertexString());
                 }
 
-                if (hedgeOpp.head() != hedge.tail() ||
-                    hedge.head() != hedgeOpp.tail())
+                if (hedgeOpp.Head != hedge.Tail ||
+                    hedge.Head != hedgeOpp.Tail)
                 {
                     throw new Exception(
-                        "face " + getVertexString() + ": " +
+                        "face " + GetVertexString() + ": " +
                         "half edge " + hedge.getVertexString() +
                         " reflected by " + hedgeOpp.getVertexString());
                 }
@@ -451,18 +527,18 @@ namespace QHull
                 if (oppFace == null)
                 {
                     throw new Exception(
-                        "face " + getVertexString() + ": " +
+                        "face " + GetVertexString() + ": " +
                         "no face on half edge " + hedgeOpp.getVertexString());
                 }
-                else if (oppFace.mark == DELETED)
+                else if (oppFace.mark == c_Deleted)
                 {
                     throw new Exception(
-                        "face " + getVertexString() + ": " +
-                        "opposite face " + oppFace.getVertexString() +
+                        "face " + GetVertexString() + ": " +
+                        "opposite face " + oppFace.GetVertexString() +
                         " not on hull");
                 }
 
-                double d = Math.Abs(distanceToPlane(hedge.head().pnt));
+                double d = Math.Abs(DistanceToPlane(hedge.Head.pnt));
                 if (d > maxd)
                 {
                     maxd = d;
@@ -475,33 +551,38 @@ namespace QHull
             if (numv != numVerts)
             {
                 throw new Exception(
-                    "face " + getVertexString() + " numVerts=" + numVerts + " should be " + numv);
+                    "face " + GetVertexString() + " numVerts=" + numVerts + " should be " + numv);
             }
         }
 
-        public int mergeAdjacentFace(HalfEdge hedgeAdj,
-            Face[] discarded)
+        /// <summary>
+        /// 合并相邻的面
+        /// </summary>
+        /// <param name="hedgeAdj"></param>
+        /// <param name="discarded"></param>
+        /// <returns></returns>
+        public int MergeAdjacentFace(HalfEdge hedgeAdj,Face[] discarded)
         {
-            Face oppFace = hedgeAdj.oppositeFace();
+            Face oppFace = hedgeAdj.OppositeFace;
             int numDiscarded = 0;
 
             discarded[numDiscarded++] = oppFace;
-            oppFace.mark = DELETED;
+            oppFace.mark = c_Deleted;
 
-            HalfEdge hedgeOpp = hedgeAdj.getOpposite();
+            HalfEdge hedgeOpp = hedgeAdj.Opposite;
 
             HalfEdge hedgeAdjPrev = hedgeAdj.prev;
             HalfEdge hedgeAdjNext = hedgeAdj.next;
             HalfEdge hedgeOppPrev = hedgeOpp.prev;
             HalfEdge hedgeOppNext = hedgeOpp.next;
 
-            while (hedgeAdjPrev.oppositeFace() == oppFace)
+            while (hedgeAdjPrev.OppositeFace == oppFace)
             {
                 hedgeAdjPrev = hedgeAdjPrev.prev;
                 hedgeOppNext = hedgeOppNext.next;
             }
 
-            while (hedgeAdjNext.oppositeFace() == oppFace)
+            while (hedgeAdjNext.OppositeFace == oppFace)
             {
                 hedgeOppPrev = hedgeOppPrev.prev;
                 hedgeAdjNext = hedgeAdjNext.next;
@@ -519,37 +600,41 @@ namespace QHull
                 he0 = hedgeAdjNext;
             }
 
-            // handle the half edges at the head
+            //处理边的头节点
             Face discardedFace;
 
-            discardedFace = connectHalfEdges(hedgeOppPrev, hedgeAdjNext);
+            discardedFace = ConnectHalfEdges(hedgeOppPrev, hedgeAdjNext);
             if (discardedFace != null)
             {
                 discarded[numDiscarded++] = discardedFace;
             }
 
-            // handle the half edges at the tail
-            discardedFace = connectHalfEdges(hedgeAdjPrev, hedgeOppNext);
+            //处理边的尾节点
+            discardedFace = ConnectHalfEdges(hedgeAdjPrev, hedgeOppNext);
             if (discardedFace != null)
             {
                 discarded[numDiscarded++] = discardedFace;
             }
 
-            computeNormalAndCentroid();
-            checkConsistency();
+            ComputeNormalAndCentroid();
+            CheckConsistency();
 
             return numDiscarded;
         }
 
-        private double areaSquared(HalfEdge hedge0, HalfEdge hedge1)
+        /// <summary>
+        /// 通过两条边  计算平方面积
+        /// </summary>
+        /// <param name="hedge0"></param>
+        /// <param name="hedge1"></param>
+        /// <returns></returns>
+        private double AreaSquared(HalfEdge hedge0, HalfEdge hedge1)
         {
-            // return the squared area of the triangle defined
-            // by the half edge hedge0 and the point at the
-            // head of hedge1.
-
-            Vector3 p0 = hedge0.tail().pnt;
-            Vector3 p1 = hedge0.head().pnt;
-            Vector3 p2 = hedge1.head().pnt;
+            //返回两条边产生的面积
+            //TODO:
+            Vector3 p0 = hedge0.Tail.pnt;
+            Vector3 p1 = hedge0.Head.pnt;
+            Vector3 p2 = hedge1.Head.pnt;
 
             double dx1 = p1.x - p0.x;
             double dy1 = p1.y - p0.y;
@@ -566,16 +651,21 @@ namespace QHull
             return x * x + y * y + z * z;
         }
 
-        public void triangulate(FaceList newFaces, double minArea)
+        /// <summary>
+        /// 三角化
+        /// </summary>
+        /// <param name="newFaces"></param>
+        /// <param name="minArea"></param>
+        public void Triangulate(FaceList newFaces, double minArea)
         {
             HalfEdge hedge;
 
-            if (numVertices() < 4)
+            if (NumVertices < 4)
             {
                 return;
             }
 
-            Vertex v0 = he0.head();
+            Vertex v0 = he0.Head;
             Face prevFace = null;
 
             hedge = he0.next;
@@ -585,19 +675,19 @@ namespace QHull
             for (hedge = hedge.next; hedge != he0.prev; hedge = hedge.next)
             {
                 Face face =
-                    createTriangle(v0, hedge.prev.head(), hedge.head(), minArea);
-                face.he0.next.setOpposite(oppPrev);
-                face.he0.prev.setOpposite(hedge.opposite);
+                    CreateTriangle(v0, hedge.prev.Head, hedge.Head, minArea);
+                face.he0.next.Opposite=(oppPrev);
+                face.he0.prev.Opposite=(hedge.opposite);
                 oppPrev = face.he0;
-                newFaces.add(face);
+                newFaces.Add(face);
                 if (face0 == null)
                 {
                     face0 = face;
                 }
             }
 
-            hedge = new HalfEdge(he0.prev.prev.head(), this);
-            hedge.setOpposite(oppPrev);
+            hedge = new HalfEdge(he0.prev.prev.Head, this);
+            hedge.Opposite=(oppPrev);
 
             hedge.prev = he0;
             hedge.prev.next = hedge;
@@ -605,12 +695,12 @@ namespace QHull
             hedge.next = he0.prev;
             hedge.next.prev = hedge;
 
-            computeNormalAndCentroid(minArea);
-            checkConsistency();
+            ComputeNormalAndCentroid(minArea);
+            CheckConsistency();
 
             for (Face face = face0; face != null; face = face.next)
             {
-                face.checkConsistency();
+                face.CheckConsistency();
             }
         }
     }

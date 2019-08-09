@@ -1,54 +1,54 @@
-using UnityEngine;
 
 namespace QHull
 {
     using System;
+    using UnityEngine;
 
-/**
- * Represents vertices of the hull, as well as the points from
- * which it is formed.
- *
- * @author John E. Lloyd, Fall 2004
- */
+    /// <summary>
+    /// 点
+    /// </summary>
     public class Vertex
     {
-        /**
-         * Spatial point associated with this vertex.
-         */
+        /// <summary>
+        /// 顶点的点的位置
+        /// </summary>
         public Vector3 pnt;
 
-        /**
-         * Back index into an array.
-         */
+        /// <summary>
+        /// 顶点的索引
+        /// </summary>
         public int index;
 
-        /**
-         * List forward link.
-         */
+        /// <summary>
+        /// 顶点List 上一个点
+        /// </summary>
         public Vertex prev;
 
-        /**
-         * List backward link.
-         */
+        /// <summary>
+        /// 顶点List 下一个点
+        /// </summary>
         public Vertex next;
 
-        /**
-         * Current face that this vertex is outside of.
-         */
+        /// <summary>
+        /// 顶点所在的面
+        /// </summary>
         public Face face;
 
-        /**
-         * Constructs a vertex and sets its coordinates to 0.
-         */
+        /// <summary>
+        /// 构造一个空的点
+        /// </summary>
         public Vertex()
         {
-            pnt = new Vector3();
+            pnt = Vector3.zero;
         }
 
-        /**
-         * Constructs a vertex with the specified coordinates
-         * and index.
-         */
+        /// <summary>
+        /// 点
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="z"></param>
+        /// <param name="idx"></param>
         public Vertex(float x, float y, float z, int idx)
         {
             pnt = new Vector3(x, y, z);
