@@ -32,12 +32,12 @@ namespace QHull
             QuickHull3D hull = new QuickHull3D();
             hull.build(ToPoint3d(points));
 
-            Point3d[] vertices = hull.getVertices();
+            Vector3[] vertices = hull.getVertices();
             StringBuilder sb = new StringBuilder();
             sb.Append($"Vertices:{vertices.Length}\n");
             for (int i = 0; i < vertices.Length; i++)
             {
-                Vector3d pnt = vertices[i];
+                Vector3 pnt = vertices[i];
                 sb.Append($"  {pnt.x},{pnt.y},{pnt.z}\n");
             }
 
@@ -91,24 +91,24 @@ namespace QHull
         }
 
 
-        public static Point3d[] ToPoint3d(Vector3[] v3s)
+        public static Vector3[] ToPoint3d(Vector3[] v3s)
         {
-            Point3d[] p3s = new Point3d[v3s.Length];
+            Vector3[] p3s = new Vector3[v3s.Length];
             for (int i = 0; i < v3s.Length; i++)
             {
                 Vector3 v3 = v3s[i];
-                p3s[i] = new Point3d(v3.x, v3.y, v3.z);
+                p3s[i] = new Vector3(v3.x, v3.y, v3.z);
             }
 
             return p3s;
         }
 
-        public static Vector3 ToVector3(Point3d p3d)
+        public static Vector3 ToVector3(Vector3 p3d)
         {
             return new Vector3((float)p3d.x, (float)p3d.y, (float)p3d.z);
         }
 
-        public static Vector3[] ToVector3(Point3d[] p3ds)
+        public static Vector3[] ToVector3(Vector3[] p3ds)
         {
             Vector3[] v3s = new Vector3[p3ds.Length];
             for (int i = 0; i < p3ds.Length; i++)

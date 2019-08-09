@@ -11,6 +11,9 @@
  * whatsoever, arising out of or in connection with the use of this
  * software.
  */
+
+using UnityEngine;
+
 namespace QHull
 {
     using System;
@@ -28,9 +31,9 @@ namespace QHull
     public class Face
     {
         public HalfEdge he0;
-        public Vector3d normal;
+        public Vector3 normal;
         public double area;
-        public Point3d centroid;
+        public Vector3 centroid;
         public double planeOffset;
         public int index;
         public int numVerts;
@@ -45,22 +48,22 @@ namespace QHull
 
         public Vertex outside;
 
-        public void computeCentroid(Point3d centroid)
+        public void computeCentroid()
         {
-            centroid.setZero();
+            centroid.x = centroid.y= centroid.z =0;
             HalfEdge he = he0;
             do
             {
-                centroid.add(he.head().pnt);
+                centroid+=(he.head().pnt);
                 he = he.next;
             } while (he != he0);
 
-            centroid.scale(1 / (double) numVerts);
+            centroid/=  numVerts;
         }
 
-        public void computeNormal(Vector3d normal, double minArea)
+        public void computeNormal( double minArea)
         {
-            computeNormal(normal);
+            computeNormal();
 
             if (area < minArea)
             {
@@ -82,34 +85,34 @@ namespace QHull
                     hedge = hedge.next;
                 } while (hedge != he0);
 
-                Point3d p2 = hedgeMax.head().pnt;
-                Point3d p1 = hedgeMax.tail().pnt;
+                Vector3 p2 = hedgeMax.head().pnt;
+                Vector3 p1 = hedgeMax.tail().pnt;
                 double lenMax = Math.Sqrt(lenSqrMax);
                 double ux = (p2.x - p1.x) / lenMax;
                 double uy = (p2.y - p1.y) / lenMax;
                 double uz = (p2.z - p1.z) / lenMax;
                 double dot = normal.x * ux + normal.y * uy + normal.z * uz;
-                normal.x -= dot * ux;
-                normal.y -= dot * uy;
-                normal.z -= dot * uz;
+                normal.x -= (float)(dot * ux);
+                normal.y -= (float)(dot * uy);
+                normal.z -= (float)(dot * uz);
 
-                normal.normalize();
+                normal.Normalize();
             }
         }
 
-        public void computeNormal(Vector3d normal)
+        public void computeNormal()
         {
             HalfEdge he1 = he0.next;
             HalfEdge he2 = he1.next;
 
-            Point3d p0 = he0.head().pnt;
-            Point3d p2 = he1.head().pnt;
+            Vector3 p0 = he0.head().pnt;
+            Vector3 p2 = he1.head().pnt;
 
             double d2x = p2.x - p0.x;
             double d2y = p2.y - p0.y;
             double d2z = p2.z - p0.z;
 
-            normal.setZero();
+            normal.x = normal.y = normal.z = 0;
 
             numVerts = 2;
 
@@ -124,24 +127,24 @@ namespace QHull
                 d2y = p2.y - p0.y;
                 d2z = p2.z - p0.z;
 
-                normal.x += d1y * d2z - d1z * d2y;
-                normal.y += d1z * d2x - d1x * d2z;
-                normal.z += d1x * d2y - d1y * d2x;
+                normal.x += (float)(d1y * d2z - d1z * d2y);
+                normal.y += (float)(d1z * d2x - d1x * d2z);
+                normal.z += (float)(d1x * d2y - d1y * d2x);
 
                 he1 = he2;
                 he2 = he2.next;
                 numVerts++;
             }
 
-            area = normal.norm();
-            normal.scale(1 / area);
+            area = normal.magnitude;
+            normal/=(float)area;
         }
 
         private void computeNormalAndCentroid()
         {
-            computeNormal(normal);
-            computeCentroid(centroid);
-            planeOffset = normal.dot(centroid);
+            computeNormal();
+            computeCentroid();
+            planeOffset =Vector3.Dot(normal, centroid);
             int numv = 0;
             HalfEdge he = he0;
             do
@@ -159,9 +162,9 @@ namespace QHull
 
         private void computeNormalAndCentroid(double minArea)
         {
-            computeNormal(normal, minArea);
-            computeCentroid(centroid);
-            planeOffset = normal.dot(centroid);
+            computeNormal( minArea);
+            computeCentroid();
+            planeOffset = Vector3.Dot(normal,centroid);
         }
 
         public static Face createTriangle(Vertex v0, Vertex v1, Vertex v2)
@@ -228,8 +231,8 @@ namespace QHull
 
         public Face()
         {
-            normal = new Vector3d();
-            centroid = new Point3d();
+            normal = new Vector3();
+            centroid = new Vector3();
             mark = VISIBLE;
         }
 
@@ -293,7 +296,7 @@ namespace QHull
          * @param p the point
          * @return distance from the point to the plane
          */
-        public double distanceToPlane(Point3d p)
+        public double distanceToPlane(Vector3 p)
         {
             return normal.x * p.x + normal.y * p.y + normal.z * p.z - planeOffset;
         }
@@ -303,12 +306,12 @@ namespace QHull
          *
          * @return the planar normal
          */
-        public Vector3d getNormal()
+        public Vector3 getNormal()
         {
             return normal;
         }
 
-        public Point3d getCentroid()
+        public Vector3 getCentroid()
         {
             return centroid;
         }
@@ -544,9 +547,9 @@ namespace QHull
             // by the half edge hedge0 and the point at the
             // head of hedge1.
 
-            Point3d p0 = hedge0.tail().pnt;
-            Point3d p1 = hedge0.head().pnt;
-            Point3d p2 = hedge1.head().pnt;
+            Vector3 p0 = hedge0.tail().pnt;
+            Vector3 p1 = hedge0.head().pnt;
+            Vector3 p2 = hedge1.head().pnt;
 
             double dx1 = p1.x - p0.x;
             double dy1 = p1.y - p0.y;

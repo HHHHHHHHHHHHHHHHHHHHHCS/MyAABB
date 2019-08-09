@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace QHull
 {
     using System;
@@ -13,7 +15,7 @@ namespace QHull
         /**
          * Spatial point associated with this vertex.
          */
-        public Point3d pnt;
+        public Vector3 pnt;
 
         /**
          * Back index into an array.
@@ -40,16 +42,16 @@ namespace QHull
          */
         public Vertex()
         {
-            pnt = new Point3d();
+            pnt = new Vector3();
         }
 
         /**
          * Constructs a vertex with the specified coordinates
          * and index.
          */
-        public Vertex(double x, double y, double z, int idx)
+        public Vertex(float x, float y, float z, int idx)
         {
-            pnt = new Point3d(x, y, z);
+            pnt = new Vector3(x, y, z);
             index = idx;
         }
     }

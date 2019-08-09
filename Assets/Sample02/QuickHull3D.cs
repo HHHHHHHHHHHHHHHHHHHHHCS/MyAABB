@@ -33,30 +33,30 @@ namespace QHull
  *
  * <p>A hull is constructed by providing a set of points
  * to either a constructor or a
- * {@link #build(Point3d[]) build} method. After
+ * {@link #build(Vector3[]) build} method. After
  * the hull is built, its vertices and faces can be retrieved
  * using {@link #getVertices()
  * getVertices} and {@link #getFaces() getFaces}.
  * A typical usage might look like this:
  * <pre>
  *   // x y z coordinates of 6 points
- *   Point3d[] points = new Point3d[]
- *    { new Point3d (0.0,  0.0,  0.0),
- *      new Point3d (1.0,  0.5,  0.0),
- *      new Point3d (2.0,  0.0,  0.0),
- *      new Point3d (0.5,  0.5,  0.5),
- *      new Point3d (0.0,  0.0,  2.0),
- *      new Point3d (0.1,  0.2,  0.3),
- *      new Point3d (0.0,  2.0,  0.0),
+ *   Vector3[] points = new Vector3[]
+ *    { new Vector3 (0.0,  0.0,  0.0),
+ *      new Vector3 (1.0,  0.5,  0.0),
+ *      new Vector3 (2.0,  0.0,  0.0),
+ *      new Vector3 (0.5,  0.5,  0.5),
+ *      new Vector3 (0.0,  0.0,  2.0),
+ *      new Vector3 (0.1,  0.2,  0.3),
+ *      new Vector3 (0.0,  2.0,  0.0),
  *    };
  *
  *   QuickHull3D hull = new QuickHull3D();
  *   hull.build (points);
  *
  *   Debug.Log ("Vertices:");
- *   Point3d[] vertices = hull.getVertices();
+ *   Vector3[] vertices = hull.getVertices();
  *   for (int i = 0; i < vertices.Length; i++)
- *    { Point3d pnt = vertices[i];
+ *    { Vector3 pnt = vertices[i];
  *      Debug.Log (pnt.x + " " + pnt.y + " " + pnt.z);
  *    }
  *
@@ -334,7 +334,7 @@ namespace QHull
  *                                  than four, or the points appear to be coincident, colinear, or
  *                                  coplanar.
  */
-        public QuickHull3D(Point3d[] points)
+        public QuickHull3D(Vector3[] points)
         {
             build(points, points.Length);
         }
@@ -483,7 +483,7 @@ namespace QHull
         {
             for (int i = 0; i < numPoints; i++)
             {
-                Point3d pnt = pointBuffer[i].pnt;
+                Vector3 pnt = pointBuffer[i].pnt;
                 ps.println(pnt.x + ", " + pnt.y + ", " + pnt.z + ",");
             }
         }
@@ -546,7 +546,7 @@ namespace QHull
  *                                  than four, or the points appear to be coincident, colinear, or
  *                                  coplanar.
  */
-        public void build(Point3d[] points)
+        public void build(Vector3[] points)
         {
             build(points, points.Length);
         }
@@ -560,7 +560,7 @@ namespace QHull
  *                                  than four or greater then the Length of <code>points</code>, or the
  *                                  points appear to be coincident, colinear, or coplanar.
  */
-        public void build(Point3d[] points, int nump)
+        public void build(Vector3[] points, int nump)
         {
             if (nump < 4)
             {
@@ -644,35 +644,37 @@ namespace QHull
             for (int i = 0; i < nump; i++)
             {
                 Vertex vtx = pointBuffer[i];
-                vtx.pnt.set(coords[i * 3 + 0], coords[i * 3 + 1], coords[i * 3 + 2]);
+                vtx.pnt[0] = (float) coords[i * 3 + 0];
+                vtx.pnt[1] = (float) coords[i * 3 + 1];
+                vtx.pnt[2] = (float) coords[i * 3 + 2];
                 vtx.index = i;
             }
         }
 
-        protected void setPoints(Point3d[] pnts, int nump)
+        protected void setPoints(Vector3[] pnts, int nump)
         {
             for (int i = 0; i < nump; i++)
             {
                 Vertex vtx = pointBuffer[i];
-                vtx.pnt.set(pnts[i]);
+                vtx.pnt = (pnts[i]);
                 vtx.index = i;
             }
         }
 
         protected void computeMaxAndMin()
         {
-            Vector3d max = new Vector3d();
-            Vector3d min = new Vector3d();
+            Vector3 max = new Vector3();
+            Vector3 min = new Vector3();
             for (int i = 0; i < 3; i++)
             {
                 maxVtxs[i] = minVtxs[i] = pointBuffer[0];
             }
 
-            max.set(pointBuffer[0].pnt);
-            min.set(pointBuffer[0].pnt);
+            max = (pointBuffer[0].pnt);
+            min = (pointBuffer[0].pnt);
             for (int i = 1; i < numPoints; i++)
             {
-                Point3d pnt = pointBuffer[i].pnt;
+                Vector3 pnt = pointBuffer[i].pnt;
                 if (pnt.x > max.x)
                 {
                     max.x = pnt.x;
@@ -734,7 +736,7 @@ namespace QHull
             int imax = 0;
             for (int i = 0; i < 3; i++)
             {
-                double diff = maxVtxs[i].pnt.get(i) - minVtxs[i].pnt.get(i);
+                double diff = maxVtxs[i].pnt[i] - minVtxs[i].pnt[i];
                 if (diff > max)
                 {
                     max = diff;
@@ -756,25 +758,25 @@ namespace QHull
 
 // set third vertex to be the vertex farthest from
 // the line between vtx0 and vtx1
-            Vector3d u01 = new Vector3d();
-            Vector3d diff02 = new Vector3d();
-            Vector3d nrml = new Vector3d();
-            Vector3d xprod = new Vector3d();
+            Vector3 u01 = new Vector3();
+            Vector3 diff02 = new Vector3();
+            Vector3 nrml = new Vector3();
+            Vector3 xprod = new Vector3();
             double maxSqr = 0;
-            u01.sub(vtx[1].pnt, vtx[0].pnt);
-            u01.normalize();
+            u01 = (vtx[1].pnt - vtx[0].pnt);
+            u01.Normalize();
             for (int i = 0; i < numPoints; i++)
             {
-                diff02.sub(pointBuffer[i].pnt, vtx[0].pnt);
-                xprod.cross(u01, diff02);
-                double lenSqr = xprod.normSquared();
+                diff02 = (pointBuffer[i].pnt - vtx[0].pnt);
+                xprod = Vector3.Cross(u01, diff02);
+                double lenSqr = xprod.sqrMagnitude;
                 if (lenSqr > maxSqr &&
                     pointBuffer[i] != vtx[0] && // paranoid
                     pointBuffer[i] != vtx[1])
                 {
                     maxSqr = lenSqr;
                     vtx[2] = pointBuffer[i];
-                    nrml.set(xprod);
+                    nrml = (xprod);
                 }
             }
 
@@ -784,19 +786,20 @@ namespace QHull
                     "Input points appear to be colinear");
             }
 
-            nrml.normalize();
+            nrml.Normalize();
 
 // recompute nrml to make sure it is normal to u10 - otherwise could
 // be errors in case vtx[2] is close to u10
-            Vector3d res = new Vector3d();
-            res.scale(nrml.dot(u01), u01); // component of nrml along u01
-            nrml.sub(res);
-            nrml.normalize();
+            Vector3 res = new Vector3();
+
+            res = Vector3.Dot(nrml, u01) * u01; // component of nrml along u01
+            nrml -= res;
+            nrml.Normalize();
             double maxDist = 0;
-            double d0 = vtx[2].pnt.dot(nrml);
+            double d0 = Vector3.Dot(vtx[2].pnt, nrml);
             for (int i = 0; i < numPoints; i++)
             {
-                double dist = Math.Abs(pointBuffer[i].pnt.dot(nrml) - d0);
+                double dist = Math.Abs(Vector3.Dot(pointBuffer[i].pnt, nrml) - d0);
                 if (dist > maxDist &&
                     pointBuffer[i] != vtx[0] && // paranoid
                     pointBuffer[i] != vtx[1] &&
@@ -823,7 +826,7 @@ namespace QHull
             }
 
             Face[] tris = new Face[4];
-            if (vtx[3].pnt.dot(nrml) - d0 < 0)
+            if (Vector3.Dot(vtx[3].pnt, nrml) - d0 < 0)
             {
                 tris[0] = Face.createTriangle(vtx[0], vtx[1], vtx[2]);
                 tris[1] = Face.createTriangle(vtx[3], vtx[1], vtx[0]);
@@ -899,9 +902,9 @@ namespace QHull
  * @see QuickHull3D#getVertices(double[])
  * @see QuickHull3D#getFaces()
  */
-        public Point3d[] getVertices()
+        public Vector3[] getVertices()
         {
-            Point3d[] vtxs = new Point3d[numVertices];
+            Vector3[] vtxs = new Vector3[numVertices];
             for (int i = 0; i < numVertices; i++)
             {
                 vtxs[i] = pointBuffer[vertexPointIndices[i]].pnt;
@@ -924,7 +927,7 @@ namespace QHull
         {
             for (int i = 0; i < numVertices; i++)
             {
-                Point3d pnt = pointBuffer[vertexPointIndices[i]].pnt;
+                Vector3 pnt = pointBuffer[vertexPointIndices[i]].pnt;
                 coords[i * 3 + 0] = pnt.x;
                 coords[i * 3 + 1] = pnt.y;
                 coords[i * 3 + 2] = pnt.z;
@@ -1070,7 +1073,7 @@ namespace QHull
 
         for (int i = 0; i < numVertices; i++)
         {
-            Point3d pnt = pointBuffer[vertexPointIndices[i]].pnt;
+            Vector3 pnt = pointBuffer[vertexPointIndices[i]].pnt;
             ps.println("v " + pnt.x + " " + pnt.y + " " + pnt.z);
         }
 
@@ -1282,7 +1285,7 @@ namespace QHull
         }
 
         protected void calculateHorizon(
-            Point3d eyePnt, HalfEdge edge0, Face face, List<HalfEdge> horizon)
+            Vector3 eyePnt, HalfEdge edge0, Face face, List<HalfEdge> horizon)
         {
 //         oldFaces.Add (face);
             deleteFacePoints(face, null);
@@ -1643,7 +1646,7 @@ namespace QHull
 // check point inclusion
         for (int i = 0; i < numPoints; i++)
         {
-            Point3d pnt = pointBuffer[i].pnt;
+            Vector3 pnt = pointBuffer[i].pnt;
             for (Iterator it = faces.iterator(); it.hasNext();)
             {
                 Face face = (Face) it.next();

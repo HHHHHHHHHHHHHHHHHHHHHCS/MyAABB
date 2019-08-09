@@ -143,7 +143,6 @@ namespace QHull
         {
             opposite = edge;
             edge.opposite = this;
-            Debug.Log("---->:" + edge.getVertexString());
         }
 
         /**
@@ -206,7 +205,7 @@ namespace QHull
         {
             if (tail() != null)
             {
-                return head().pnt.distance(tail().pnt);
+                return Vector3.Distance(head().pnt, tail().pnt);
             }
             else
             {
@@ -223,7 +222,7 @@ namespace QHull
         {
             if (tail() != null)
             {
-                return head().pnt.distanceSquared(tail().pnt);
+                return Vector3.SqrMagnitude(head().pnt - tail().pnt);
             }
             else
             {
@@ -239,11 +238,11 @@ namespace QHull
 // 	 *
 // 	 * A product > 0 indicates a left turn WRT the normal
 // 	 */
-// 	public double turnProduct (HalfEdge he1, Vector3d nrml)
+// 	public double turnProduct (HalfEdge he1, Vector3 nrml)
 // 	 { 
-// 	   Point3d pnt0 = tail().pnt;
-// 	   Point3d pnt1 = head().pnt;
-// 	   Point3d pnt2 = he1.head().pnt;
+// 	   Vector3 pnt0 = tail().pnt;
+// 	   Vector3 pnt1 = head().pnt;
+// 	   Vector3 pnt2 = he1.head().pnt;
 
 // 	   double del0x = pnt1.x - pnt0.x;
 // 	   double del0y = pnt1.y - pnt0.y;
