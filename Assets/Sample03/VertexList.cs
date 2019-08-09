@@ -2,26 +2,27 @@ namespace QHull
 {
     using System;
 
-/**
- * Maintains a double-linked list of vertices for use by QuickHull3D
- */
+    /// <summary>
+    /// 顶点的链表
+    /// </summary>
     public class VertexList
     {
         private Vertex head;
         private Vertex tail;
 
-        /**
-         * Clears this list.
-         */
-        public void clear()
+        /// <summary>
+        /// 清空链表
+        /// </summary>
+        public void Clear()
         {
             head = tail = null;
         }
 
-        /**
-         * Adds a vertex to the end of this list.
-         */
-        public void add(Vertex vtx)
+        /// <summary>
+        /// 添加一个顶点到链表到最后
+        /// </summary>
+        /// <param name="vtx"></param>
+        public void Add(Vertex vtx)
         {
             if (head == null)
             {
@@ -37,10 +38,11 @@ namespace QHull
             tail = vtx;
         }
 
-        /**
-         * Adds a chain of vertices to the end of this list.
-         */
-        public void addAll(Vertex vtx)
+        /// <summary>
+        /// 添加一个链表到当前链表的末尾
+        /// </summary>
+        /// <param name="vtx"></param>
+        public void AddRange(Vertex vtx)
         {
             if (head == null)
             {
@@ -60,10 +62,11 @@ namespace QHull
             tail = vtx;
         }
 
-        /**
-         * Deletes a vertex from this list.
-         */
-        public void delete(Vertex vtx)
+        /// <summary>
+        /// 删除一个顶点
+        /// </summary>
+        /// <param name="vtx"></param>
+        public void Delete(Vertex vtx)
         {
             if (vtx.prev == null)
             {
@@ -84,10 +87,12 @@ namespace QHull
             }
         }
 
-        /**
-         * Deletes a chain of vertices from this list.
-         */
-        public void delete(Vertex vtx1, Vertex vtx2)
+        /// <summary>
+        /// 删除两个连续的顶点
+        /// </summary>
+        /// <param name="vtx1"></param>
+        /// <param name="vtx2"></param>
+        public void Delete(Vertex vtx1, Vertex vtx2)
         {
             if (vtx1.prev == null)
             {
@@ -108,11 +113,12 @@ namespace QHull
             }
         }
 
-        /**
-         * Inserts a vertex into this list before another
-         * specificed vertex.
-         */
-        public void insertBefore(Vertex vtx, Vertex next)
+        /// <summary>
+        /// 在指定顶点前面插入一个顶点
+        /// </summary>
+        /// <param name="vtx"></param>
+        /// <param name="next"></param>
+        public void InsertBefore(Vertex vtx, Vertex next)
         {
             vtx.prev = next.prev;
             if (next.prev == null)
@@ -128,20 +134,15 @@ namespace QHull
             next.prev = vtx;
         }
 
-        /**
-         * Returns the first element in this list.
-         */
-        public Vertex first()
-        {
-            return head;
-        }
+        /// <summary>
+        /// 返回头顶点
+        /// </summary>
+        public Vertex First => head;
 
-        /**
-         * Returns true if this list is empty.
-         */
-        public bool isEmpty()
-        {
-            return head == null;
-        }
+
+        /// <summary>
+        /// 是否是空的链表  
+        /// </summary>
+        public bool IsEmpty => head == null;
     }
 }

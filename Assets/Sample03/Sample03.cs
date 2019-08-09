@@ -7,26 +7,20 @@ namespace QHull
     using System.Text;
     using UnityEngine;
 
-/**
- * Simple example usage of QuickHull3D. Run as the command
- * <pre>
- *   java quickhull3d.SimpleExample
- * </pre>
- */
-    public class SimpleExample : MonoBehaviour
+
+    public class Sample03 : MonoBehaviour
     {
         public MeshFilter ori, col;
         public GameObject prefab_s, prefab_m;
+        private int[] faceArray, triArray;
 
-        /**
-         * Run for a simple demonstration of QuickHull3D.
-         */
+
         public void Awake()
         {
             Vector3[] v3s = ori.mesh.vertices;
             AABB aabb = new AABB();
             var abps = aabb.Build(v3s);
-            var points = ToPoint3d(abps.ToArray());
+            var points = abps.ToArray();
 
             foreach (var point in abps)
             {
@@ -36,14 +30,14 @@ namespace QHull
             Debug.Log("Ori Vertex Count:" + v3s.Length);
 
             QuickHull3D hull = new QuickHull3D();
-            hull.build(points);
+            hull.Build(points);
 
-            Point3d[] vertices = hull.getVertices();
+            Vector3[] vertices = hull.GetVertices();
             StringBuilder sb = new StringBuilder();
             sb.Append($"Vertices:{vertices.Length}\n");
             for (int i = 0; i < vertices.Length; i++)
             {
-                Point3d pnt = vertices[i];
+                Vector3 pnt = vertices[i];
                 sb.Append($"  {pnt.x},{pnt.y},{pnt.z}\n");
             }
 
@@ -52,7 +46,7 @@ namespace QHull
 
             sb.Clear();
             List<int> faces = new List<int>();
-            int[][] faceIndices = hull.getFaces();
+            int[][] faceIndices = hull.GetFaces();
             sb.Append($"Faces:{vertices.Length}\n");
             for (int i = 0; i < vertices.Length; i++)
             {
@@ -62,13 +56,13 @@ namespace QHull
                     if (j >= 2)
                     {
                         faces.Add(faceIndices[i][0]);
-                        for (int k = -2; k <= 0; k++)
+                        for (int k = -1; k <= 0; k++)
                         {
                             faces.Add(faceIndices[i][j + k]);
                         }
                     }
 
-                    Instantiate(prefab_m, ToVector3(vertices[faceIndices[i][j]]), Quaternion.identity);
+                    Instantiate(prefab_m, vertices[faceIndices[i][j]], Quaternion.identity);
                 }
 
                 sb.Append('\n');
@@ -77,37 +71,23 @@ namespace QHull
             Debug.Log(sb.ToString());
             sb.Clear();
 
-
-            Mesh mesh = new Mesh {vertices = ToVector3(vertices), triangles = faces.ToArray()};
+            faceArray = faces.ToArray();
+            triArray = new int[faceArray.Length];
+            Mesh mesh = new Mesh {vertices = vertices, triangles = faceArray};
             col.mesh = mesh;
+            //StartCoroutine(NewMesh());
         }
 
-        public static Point3d[] ToPoint3d(Vector3[] v3s)
+        private IEnumerator NewMesh()
         {
-            Point3d[] p3s = new Point3d[v3s.Length];
-            for (int i = 0; i < v3s.Length; i++)
+            for (int i = 0; i < faceArray.Length / 3; i++)
             {
-                Vector3 v3 = v3s[i];
-                p3s[i] = new Point3d(v3.x, v3.y, v3.z);
+                triArray[3 * i + 0] = faceArray[3 * i + 0];
+                triArray[3 * i + 1] = faceArray[3 * i + 1];
+                triArray[3 * i + 2] = faceArray[3 * i + 2];
+                col.mesh.triangles = triArray;
+                yield return new WaitForSeconds(0.05f);
             }
-
-            return p3s;
-        }
-
-        public static Vector3 ToVector3(Point3d p3d)
-        {
-            return new Vector3((float) p3d.x, (float) p3d.y, (float) p3d.z);
-        }
-
-        public static Vector3[] ToVector3(Point3d[] p3ds)
-        {
-            Vector3[] v3s = new Vector3[p3ds.Length];
-            for (int i = 0; i < p3ds.Length; i++)
-            {
-                v3s[i] = ToVector3(p3ds[i]);
-            }
-
-            return v3s;
         }
     }
 }

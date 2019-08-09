@@ -293,11 +293,11 @@ public class QuickHull3D
             }
 
             int numf = (int) stok.nval;
-            stok.nextToken(); // clear EOL
+            stok.nextToken(); // Clear EOL
             int[][] faceIndices = new int[numf][];
             for (int i = 0; i < numf; i++)
             {
-                indexList.clear();
+                indexList.Clear();
                 while (stok.nextToken() != StreamTokenizer.TT_EOL)
                 {
                     if (stok.ttype != StreamTokenizer.TT_NUMBER)
@@ -317,7 +317,7 @@ public class QuickHull3D
                 }
             }
 
-            setHull(coords, nump, faceIndices, numf);
+            SetHull(coords, nump, faceIndices, numf);
         }
         catch (Exception e)
         {
