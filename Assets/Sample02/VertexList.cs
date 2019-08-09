@@ -1,141 +1,148 @@
-ï»¿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-/// <summary>
-/// ç®€å•çš„é¡¶ç‚¹é“¾è¡¨
-/// </summary>
-public class VertexList 
+namespace QHull
 {
-    private Vertex head;
-    private Vertex tail;
+    using System;
 
     /// <summary>
-    /// æ¸…é™¤åˆ—è¡¨
+    /// ¶¥µãµÄÁ´±í
     /// </summary>
-    public void Clear()
+    public class VertexList
     {
-        head = tail = null;
+        private Vertex head;
+        private Vertex tail;
+
+        /// <summary>
+        /// Çå¿ÕÁ´±í
+        /// </summary>
+        public void Clear()
+        {
+            head = tail = null;
+        }
+
+        /// <summary>
+        /// Ìí¼ÓÒ»¸ö¶¥µãµ½Á´±íµ½×îºó
+        /// </summary>
+        /// <param name="vtx"></param>
+        public void Add(Vertex vtx)
+        {
+            if (head == null)
+            {
+                head = vtx;
+            }
+            else
+            {
+                tail.next = vtx;
+            }
+
+            vtx.prev = tail;
+            vtx.next = null;
+            tail = vtx;
+        }
+
+        /// <summary>
+        /// Ìí¼ÓÒ»¸öÁ´±íµ½µ±Ç°Á´±íµÄÄ©Î²
+        /// </summary>
+        /// <param name="vtx"></param>
+        public void AddRange(Vertex vtx)
+        {
+            if (head == null)
+            {
+                head = vtx;
+            }
+            else
+            {
+                tail.next = vtx;
+            }
+
+            vtx.prev = tail;
+            while (vtx.next != null)
+            {
+                vtx = vtx.next;
+            }
+
+            tail = vtx;
+        }
+
+        /// <summary>
+        /// É¾³ıÒ»¸ö¶¥µã
+        /// </summary>
+        /// <param name="vtx"></param>
+        public void Delete(Vertex vtx)
+        {
+            if (vtx.prev == null)
+            {
+                head = vtx.next;
+            }
+            else
+            {
+                vtx.prev.next = vtx.next;
+            }
+
+            if (vtx.next == null)
+            {
+                tail = vtx.prev;
+            }
+            else
+            {
+                vtx.next.prev = vtx.prev;
+            }
+        }
+
+        /// <summary>
+        /// É¾³ıÁ½¸öÁ¬ĞøµÄ¶¥µã
+        /// </summary>
+        /// <param name="vtx1"></param>
+        /// <param name="vtx2"></param>
+        public void Delete(Vertex vtx1, Vertex vtx2)
+        {
+            if (vtx1.prev == null)
+            {
+                head = vtx2.next;
+            }
+            else
+            {
+                vtx1.prev.next = vtx2.next;
+            }
+
+            if (vtx2.next == null)
+            {
+                tail = vtx1.prev;
+            }
+            else
+            {
+                vtx2.next.prev = vtx1.prev;
+            }
+        }
+
+        /// <summary>
+        /// ÔÚÖ¸¶¨¶¥µãÇ°Ãæ²åÈëÒ»¸ö¶¥µã
+        /// </summary>
+        /// <param name="vtx"></param>
+        /// <param name="next"></param>
+        public void InsertBefore(Vertex vtx, Vertex next)
+        {
+            vtx.prev = next.prev;
+            if (next.prev == null)
+            {
+                head = vtx;
+            }
+            else
+            {
+                next.prev.next = vtx;
+            }
+
+            vtx.next = next;
+            next.prev = vtx;
+        }
+
+        /// <summary>
+        /// ·µ»ØÍ·¶¥µã
+        /// </summary>
+        public Vertex First => head;
+
+
+        /// <summary>
+        /// ÊÇ·ñÊÇ¿ÕµÄÁ´±í  
+        /// </summary>
+        public bool IsEmpty => head == null;
     }
-
-    /// <summary>
-    /// æ·»åŠ é¡¶ç‚¹åˆ°é¡¶ç‚¹é“¾è¡¨
-    /// </summary>
-    /// <param name="vtx"></param>
-    public void Add(Vertex vtx)
-    {
-        if (head == null)
-        {
-            head = vtx;
-        }
-        else
-        {
-            tail.next = vtx;
-        }
-        vtx.prev = tail;
-        vtx.next = null;
-        tail = vtx;
-    }
-
-    /// <summary>
-    /// æ·»åŠ é¡¶ç‚¹é“¾è¡¨ åˆ°å½“å‰é¡¶ç‚¹é“¾è¡¨ å¹¶ä¸”é‡æ–°éå†ä¸€ä¸‹
-    /// </summary>
-    /// <param name="vtx"></param>
-    public void AddAll(Vertex vtx)
-    {
-        if (head == null)
-        {
-            head = vtx;
-        }
-        else
-        {
-            tail.next = vtx;
-        }
-        vtx.prev = tail;
-        while (vtx.next != null)
-        {
-            vtx = vtx.next;
-        }
-        tail = vtx;
-    }
-
-    /// <summary>
-    /// ä»é“¾è¡¨ä¸­åˆ é™¤ä¸€ä¸ªç‚¹
-    /// </summary>
-    /// <param name="vtx"></param>
-    public void Delete(Vertex vtx)
-    {
-        if (vtx.prev == null)
-        {
-            head = vtx.next;
-        }
-        else
-        {
-            vtx.prev.next = vtx.next;
-        }
-        if (vtx.next == null)
-        {
-            tail = vtx.prev;
-        }
-        else
-        {
-            vtx.next.prev = vtx.prev;
-        }
-    }
-
-    /// <summary>
-    /// åœ¨é“¾è¡¨ä¸­åˆ é™¤ä¸¤ä¸ªè¿ç»­çš„ç‚¹
-    /// </summary>
-    /// <param name="vtx1"></param>
-    /// <param name="vtx2"></param>
-    public void Delete(Vertex vtx1, Vertex vtx2)
-    {
-        if (vtx1.prev == null)
-        {
-            head = vtx2.next;
-        }
-        else
-        {
-            vtx1.prev.next = vtx2.next;
-        }
-        if (vtx2.next == null)
-        {
-            tail = vtx1.prev;
-        }
-        else
-        {
-            vtx2.next.prev = vtx1.prev;
-        }
-    }
-
-    /// <summary>
-    /// åœ¨ä¸€ä¸ªé¡¶ç‚¹å‰é¢æ’å…¥ä¸€ä¸ªç‚¹
-    /// </summary>
-    /// <param name="vtx"></param>
-    /// <param name="next"></param>
-    public void InsertBefore(Vertex vtx, Vertex next)
-    {
-        vtx.prev = next.prev;
-        if (next.prev == null)
-        {
-            head = vtx;
-        }
-        else
-        {
-            next.prev.next = vtx;
-        }
-        vtx.next = next;
-        next.prev = vtx;
-    }
-
-    /// <summary>
-    /// è¿”å›å¤´èŠ‚ç‚¹
-    /// </summary>
-    public Vertex First => head;
-
-    /// <summary>
-    /// æ˜¯å¦æ˜¯ç©ºçš„
-    /// </summary>
-    /// <returns></returns>
-    public bool IsEmpty()=> head == null;
 }

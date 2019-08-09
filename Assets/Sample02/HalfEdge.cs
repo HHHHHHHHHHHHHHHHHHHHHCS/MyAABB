@@ -1,105 +1,169 @@
-ï»¿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// ä¸‰è§’é¢çš„é«˜çš„è¾¹
-/// </summary>
-public class HalfEdge
+namespace QHull
 {
-    /// <summary>
-    /// è·Ÿè¿™ä¸ªè¾¹æœ‰å…³çš„ å¤´çš„é¡¶ç‚¹
-    /// </summary>
-    private Vertex vertex;
+    using System;
+
 
     /// <summary>
-    /// è·Ÿè¿™ä¸ªè¾¹æœ‰å…³çš„ä¸‰è§’é¢
+    /// ±ß
     /// </summary>
-    public Face Face { get; set; }
-
-    /// <summary>
-    /// ä¸‰è§’é¢çš„ä¸‹é¢ä¸€æ¡è¾¹
-    /// </summary>
-    public HalfEdge Next { get; set; }
-
-    /// <summary>
-    /// ä¸‰è§’é¢çš„ä¸Šé¢ä¸€æ¡è¾¹
-    /// </summary>
-    public HalfEdge Prev { get; set; }
-
-    /// <summary>
-    /// ä¸æ­¤è¾¹ç¼˜ç›¸å¯¹çš„åŠè¾¹
-    /// </summary>
-    private HalfEdge opposite;
-
-    /// <summary>
-    /// ä¸æ­¤è¾¹ç¼˜ç›¸å¯¹çš„åŠè¾¹
-    /// </summary>
-    public HalfEdge Opposite
+    public class HalfEdge
     {
-        get => opposite;
-        set
+        /// <summary>
+        /// ±ß µÄÍ·µã
+        /// </summary>
+        public Vertex vertex;
+
+        /// <summary>
+        /// ±ß ËùÊôÓÚµÄÃæ
+        /// </summary>
+        public Face face;
+
+        /// <summary>
+        /// ÏÂÒ»Ìõ±ß
+        /// </summary>
+        public HalfEdge next;
+
+        /// <summary>
+        /// ÉÏÒ»Ìõ±ß
+        /// </summary>
+        public HalfEdge prev;
+
+        /// <summary>
+        /// ¶ÔÃæµÄ±ß
+        /// </summary>
+        public HalfEdge opposite;
+
+        /// <summary>
+        /// ÓÃÍ·µãºÍÃæ ¹¹ÔìÒ»Ìõ±ß
+        /// </summary>
+        /// <param name="v"></param>
+        /// <param name="f"></param>
+        public HalfEdge(Vertex v, Face f)
         {
-            opposite = value;
-            value.opposite = this;
+            vertex = v;
+            face = f;
         }
-    }
 
-    /// <summary>
-    /// åŠè¾¹çš„å¤´ç‚¹
-    /// </summary>
-    public Vertex Head => vertex;
+        /// <summary>
+        /// ¿ÕµÄ¹¹Ôìº¯Êı ±ğÓÃ
+        /// </summary>
+        public HalfEdge()
+        {
+        }
 
-    /// <summary>
-    /// åŠè¾¹çš„å°¾ç‚¹
-    /// </summary>
-    public Vertex Tail => Prev?.vertex;
 
-    /// <summary>
-    /// å¾—åˆ°å¯¹è¾¹çš„é¢
-    /// </summary>
-    /// <returns></returns>
-    public Face OppositeFace=> opposite?.Face;
+        /// <summary>
+        /// ÏÂÒ»Ìõ±ß
+        /// </summary>
+        /// <param name="edge"></param>
+        public HalfEdge Next
+        {
+            get => next;
+            set => next = value;
+        }
 
-    public HalfEdge()
-    {
-    }
 
-    /// <summary>
-    /// ä½¿ç”¨å¤´éƒ¨çš„ç‚¹å’Œå·¦ä¾§çš„ä¸‰è§’é¢ æ„å»º
-    /// </summary>
-    /// <param name="v"></param>
-    /// <param name="f"></param>
-    public HalfEdge(Vertex v, Face f)
-    {
-        vertex = v;
-        Face = f;
-    }
+        /// <summary>
+        /// ÉÏÒ»Ìõ±ß
+        /// </summary>
+        public HalfEdge Prev
+        {
+            get => prev;
+            set => prev = value;
+        }
 
-    /// <summary>
-    /// å¾—åˆ°å¤´å°¾ å°¾å·´çš„Index çš„string
-    /// </summary>
-    /// <returns></returns>
-    public string GetVertexString()
-    {
-        return $"{(Tail != null ? Tail.index.ToString() : "?")}-{Head.index}";
-    }
 
-    /// <summary>
-    /// é•¿åº¦
-    /// </summary>
-    /// <returns></returns>
-    public float Length()
-    {
-        return Tail != null ? Vector3.Distance(Head, Tail) : -1f;
-    }
+        /// <summary>
+        /// µ±Ç°±ßËùÊôÓÚµÄface
+        /// </summary>
+        /// <returns></returns>
+        public Face Face => face;
 
-    /// <summary>
-    /// å¹³æ–¹é•¿åº¦
-    /// </summary>
-    /// <returns></returns>
-    public float LengthSquared()
-    {
-        return Tail != null ? Head.pnt.DistanceSquared(Tail) : -1f;
+
+        /// <summary>
+        /// ¶ÔÃæµÄ±ß
+        /// </summary>
+        public HalfEdge Opposite
+        {
+            get => opposite;
+            set => opposite = value;
+        }
+
+        /// <summary>
+        /// ±ßµÄÍ·µã
+        /// </summary>
+        public Vertex Head => vertex;
+
+
+        /// <summary>
+        /// ±ßµÄÎ²°Íµã  ¼´ÉÏÒ»Ìõ±ßµÄÎ²°Íµã
+        /// </summary>
+        /// <returns></returns>
+        public Vertex Tail => prev?.vertex;
+
+
+        /// <summary>
+        /// ¶Ô±ßµÄÃæ
+        /// </summary>
+        /// <returns></returns>
+        public Face OppositeFace => opposite?.face;
+
+
+        /// <summary>
+        /// Êä³ö±ßĞÅÏ¢ °üº¬Í·µãºÍÎ²µã
+        /// </summary>
+        /// <returns></returns>
+        public string GetVertexString()
+        {
+            return ToString();
+        }
+
+        public override string ToString()
+        {
+            if (Tail != null)
+            {
+                return "" +
+                       Tail.index + "-" +
+                       Head.index;
+            }
+            else
+            {
+                return "?-" + Head.index;
+            }
+        }
+
+        /// <summary>
+        /// Í·µãµ½Î²µãµÄ¾àÀë
+        /// </summary>
+        /// <returns></returns>
+        public float length()
+        {
+            if (Tail != null)
+            {
+                return Vector3.Distance(Head.pnt, Tail.pnt);
+            }
+            else
+            {
+                return -1;
+            }
+        }
+
+        /// <summary>
+        /// Í·µãµÄÎ²µãµÄÆ½·½¾àÀë
+        /// </summary>
+        /// <returns></returns>
+        public float lengthSquared()
+        {
+            if (Tail != null)
+            {
+                return Vector3.SqrMagnitude(Head.pnt - Tail.pnt);
+            }
+            else
+            {
+                return -1;
+            }
+        }
     }
 }

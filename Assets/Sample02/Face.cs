@@ -1,640 +1,703 @@
-ï»¿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-/// <summary>
-/// ä¸‰è§’é¢
-/// </summary>
-public class Face
+namespace QHull
 {
-    /// <summary>
-    /// çŠ¶æ€:å¯è§çš„
-    /// </summary>
-    public const int c_visible = 1;
+    using System;
+    using UnityEngine;
 
     /// <summary>
-    /// çŠ¶æ€:ä¸æ˜¯å‡¸å‡ºçš„å½¢çŠ¶
+    /// Ãæ
     /// </summary>
-    public const int c_noneConvex = 2;
-
-    /// <summary>
-    /// çŠ¶æ€:åˆ é™¤çš„
-    /// </summary>
-    public const int c_deleted = 3;
-
-    /// <summary>
-    /// ç¬¬0æ¡è¾¹
-    /// </summary>
-    private HalfEdge he0;
-
-    /// <summary>
-    /// æ³•çº¿
-    /// </summary>
-    private Vector3 normal;
-
-    /// <summary>
-    /// é¢ç§¯
-    /// </summary>
-    private float area;
-
-    /// <summary>
-    /// ä¸­å¿ƒç‚¹
-    /// </summary>
-    private Vector3 centroid;
-
-    /// <summary>
-    /// é¢æ¿åç§»
-    /// </summary>
-    private float planeOffset;
-
-    /// <summary>
-    /// faceçš„Index
-    /// </summary>
-    private int index;
-
-    /// <summary>
-    /// é¡¶ç‚¹æ•°é‡
-    /// </summary>
-    private int numVerts;
-
-    /// <summary>
-    /// ä¸‹ä¸€ä¸ªä¸‰è§’é¢ é“¾è¡¨ç”¨
-    /// </summary>
-    public Face next;
-
-    /// <summary>
-    /// å½“å‰çš„çŠ¶æ€
-    /// </summary>
-    public int Mark { get; set; } = c_visible;
-
-    /// <summary>
-    /// å¹³é¢ä¸Šä¸€ä¸ªç‰¹åˆ«çš„ç‚¹
-    /// </summary>
-    public Vertex outside;
-
-    /// <summary>
-    /// ç¬¬ä¸€æ¡è¾¹
-    /// </summary>
-    public HalfEdge HE0 => he0;
-
-    /// <summary>
-    /// é¢ç§¯
-    /// </summary>
-    public float Area => area;
-
-    public void ComputeCentroid()
+    public class Face
     {
-        centroid = Vector3.zero;
-        var he = he0;
-        do
+        /// <summary>
+        /// µÚ0Ìõ±ß
+        /// </summary>
+        public HalfEdge he0;
+
+        /// <summary>
+        /// ·¨Ïß
+        /// </summary>
+        public Vector3 normal;
+
+        /// <summary>
+        /// Ãæ»ı
+        /// </summary>
+        public float area;
+
+        /// <summary>
+        /// ÖĞĞÄµã
+        /// </summary>
+        public Vector3 centroid;
+
+        /// <summary>
+        /// Ãæ°åÆ«ÒÆ
+        /// </summary>
+        public float planeOffset;
+
+        /// <summary>
+        /// faceµÄIndex
+        /// </summary>
+        public int index;
+
+        /// <summary>
+        /// ÃæÉÏ¶¥µãµÄÊıÁ¿
+        /// </summary>
+        public int numVerts;
+
+        public Face next;
+
+        /// <summary>
+        /// ×´Ì¬:¿É¼ûµÄ
+        /// </summary>
+        public const int c_Visible = 1;
+
+        /// <summary>
+        /// ×´Ì¬:²»ÊÇÍ¹³öµÄĞÎ×´
+        /// </summary>
+        public const int c_NoneConvex = 2;
+
+        /// <summary>
+        /// ×´Ì¬:É¾³ıµÄ
+        /// </summary>
+        public const int c_Deleted = 3;
+
+        /// <summary>
+        /// µ±Ç°µÄ×´Ì¬
+        /// </summary>
+        public int mark = c_Visible;
+
+        /// <summary>
+        /// ÍâÃæµÄ¶¥µã
+        /// </summary>
+        public Vertex outside;
+
+        /// <summary>
+        /// ¼ÆËãÖĞĞÄµã
+        /// </summary>
+        /// <param name="centroid"></param>
+        public void ComputeCentroid()
         {
-            centroid += he.Head;
-            he = he.Next;
-        } while (he != he0);
-
-        centroid /= numVerts;
-    }
-
-
-    public void ComputeNormal(float minArea)
-    {
-        ComputeNormal();
-
-        if (area < minArea)
-        {
-            //ç”¨æ¥å¤„ç†å››è¾¹å½¢ä»¥ä¸Šçš„æ—¶å€™,ä¸å†ä¸€ä¸ªå¹³é¢çš„æ³•çº¿
-            //é€šè¿‡åˆ é™¤æœ€é•¿çš„è¾¹ æ¥è®©æ³•çº¿æ›´å‡†ç¡®
-
-            HalfEdge hedgeMax = null;
-            float lenSqrMax = 0;
-            var hedge = he0;
+            centroid = Vector3.zero;
+            HalfEdge he = he0;
             do
             {
-                //æ‰¾å‡ºæœ€é•¿çš„è¾¹
-                var lenSqr = hedge.LengthSquared();
-                if (lenSqr > lenSqrMax) lenSqrMax = lenSqr;
+                centroid += he.Head.pnt;
+                he = he.next;
+            } while (he != he0);
 
-                hedge = hedge.Next;
-            } while (hedge != he0);
-
-            var p2 = hedgeMax.Head.pnt;
-            var p1 = hedgeMax.Tail.pnt;
-
-            var lenMax = Mathf.Sqrt(lenSqrMax);
-
-            var p21 = (p2 - p1) / lenMax;
-
-            var dot = Vector3.Dot(normal, p21);
-
-            normal -= dot * p21;
-
-            normal.Normalize();
-        }
-    }
-
-
-    public void ComputeNormal()
-    {
-        var he1 = he0.Next;
-        var he2 = he1.Next;
-
-        var p0 = he0.Head.pnt;
-        var d2 = he1.Head.pnt - p0;
-
-        normal = Vector3.zero;
-        numVerts = 2;
-
-        while (he2 != he0)
-        {
-            var oD2 = d2;
-
-            d2 = he2.Head.pnt - p0;
-
-            normal += Vector3.Cross(oD2, d2);
-
-            he2 = he2.Next;
-            numVerts++;
+            centroid /= numVerts;
         }
 
-        area = normal.magnitude; //å‰ç§¯çš„ç»å¯¹å€¼çš„ä¸€åŠ æ˜¯é¢ç§¯
-        normal.Normalize();
-    }
-
-    private void ComputeNormalAndCentroid()
-    {
-        ComputeNormal();
-        ComputeCentroid();
-        planeOffset = Vector3.Dot(normal, centroid);
-        var numv = 0;
-        var he = he0;
-        do
+        /// <summary>
+        /// ¼ÆËã·¨Ïß ¸ù¾İ×îĞ¡µÄÃæ»ı
+        /// </summary>
+        /// <param name="normal"></param>
+        /// <param name="minArea"></param>
+        public void ComputeNormal(float minArea)
         {
-            numv++;
-            he = he.Next;
-        } while (he != he0);
+            ComputeNormal();
 
-        if (numv != numVerts)
-            throw new Exception("face:" + GetVertexString() + " numVerts=" + numVerts + " should be " + numv);
-    }
-
-    private void ComputeNormalAndCentroid(float minArea)
-    {
-        ComputeNormal(minArea);
-        ComputeCentroid();
-        planeOffset = Vector3.Dot(normal, centroid);
-    }
-
-    public static Face CreateTriangle(Vertex v0, Vertex v1, Vertex v2)
-    {
-        return CreateTriangle(v0, v1, v2, 0);
-    }
-
-    /// <summary>
-    /// åˆ›å»ºä¸€ä¸ªä¸‰è§’é¢
-    /// </summary>
-    /// <param name="v0"></param>
-    /// <param name="v1"></param>
-    /// <param name="v2"></param>
-    /// <param name="minArea"></param>
-    public static Face CreateTriangle(Vertex v0, Vertex v1, Vertex v2, float minArea)
-    {
-        var face = new Face();
-        var he0 = new HalfEdge(v0, face);
-        var he1 = new HalfEdge(v1, face);
-        var he2 = new HalfEdge(v2, face);
-
-        he0.Prev = he2;
-        he0.Next = he1;
-        he1.Prev = he0;
-        he1.Next = he2;
-        he2.Prev = he1;
-        he2.Next = he0;
-
-        face.he0 = he0;
-
-        face.ComputeNormalAndCentroid(minArea);
-
-        return face;
-    }
-
-    public static Face Create(Vertex[] vtxArray, int[] indices)
-    {
-        Face face = new Face();
-        HalfEdge hePrev = null;
-        for (int i = 0; i < indices.Length; i++)
-        {
-            HalfEdge he = new HalfEdge(vtxArray[indices[i]], face);
-            if (hePrev != null)
+            if (area < minArea)
             {
-                he.Prev = hePrev;
-                hePrev.Next = he;
-            }
-            else
-            {
-                face.he0 = he;
-            }
+                //ÓÃÀ´´¦ÀíËÄ±ßĞÎÒÔÉÏµÄÊ±ºò,²»ÔÙÒ»¸öÆ½ÃæµÄ·¨Ïß
+                //Í¨¹ıÉ¾³ı×î³¤µÄ±ß À´ÈÃ·¨Ïß¸ü×¼È·
 
-            hePrev = he;
-        }
-
-        face.he0.Prev = hePrev;
-        hePrev.Next = face.he0;
-        face.ComputeNormalAndCentroid();
-        return face;
-    }
-
-    public Face()
-    {
-        normal = Vector3.zero;
-        centroid = Vector3.zero;
-        Mark = c_visible;
-    }
-
-    /// <summary>
-    /// å¾—åˆ°æŒ‡å®šIndexçš„è¾¹
-    /// i>0 next æŸ¥æ‰¾   i<0 prev æŸ¥æ‰¾
-    /// ié™åˆ¶åœ¨[0,2]
-    /// </summary>
-    /// <param name="i"></param>
-    /// <returns></returns>
-    public HalfEdge GetEdge(int i)
-    {
-        HalfEdge he = he0;
-        while (i > 0)
-        {
-            he = he.Next;
-            i--;
-        }
-
-        while (i < 0)
-        {
-            he = he.Prev;
-            i++;
-        }
-
-        return he;
-    }
-
-    /// <summary>
-    /// å–åˆ°ç¬¬ä¸€æ¡è¾¹
-    /// </summary>
-    public HalfEdge FirstEdge => he0;
-
-    /// <summary>
-    /// æ ¹æ®å¤´å°¾ä¸¤ä¸ªç‚¹ æ‰¾åˆ°è¾¹
-    /// </summary>
-    /// <param name="vt"></param>
-    /// <param name="vh"></param>
-    /// <returns></returns>
-    public HalfEdge FindEdge(Vertex vt, Vertex vh)
-    {
-        HalfEdge he = he0;
-        do
-        {
-            if (he.Head == vh && he.Tail == vt)
-            {
-                return he;
-            }
-
-            he = he.Next;
-        } while (he != he0);
-
-        return null;
-    }
-
-    /// <summary>
-    /// ç‚¹åˆ°å¹³é¢çš„è·ç¦»
-    /// </summary>
-    /// <param name="p"></param>
-    /// <returns></returns>
-    public float DistanceToPlane(Vector3 p)
-    {
-        return normal.x * p.x + normal.y * p.y + normal.z * p.z - planeOffset;
-    }
-
-    /// <summary>
-    /// æ³•çº¿
-    /// </summary>
-    public Vector3 Normal => normal;
-
-    /// <summary>
-    /// ä¸­å¿ƒç‚¹
-    /// </summary>
-    public Vector3 Centroid => centroid;
-
-    /// <summary>
-    /// é¡¶ç‚¹æ•°é‡
-    /// </summary>
-    public int NumVertices => numVerts;
-
-    /// <summary>
-    /// å¾—åˆ°é¡¶ç‚¹çš„String
-    /// </summary>
-    /// <returns></returns>
-    public string GetVertexString()
-    {
-        string s = null;
-        HalfEdge he = he0;
-
-        do
-        {
-            if (s == null)
-            {
-                s = "" + he.Head.index;
-            }
-            else
-            {
-                s += " " + he.Head.index;
-            }
-
-            he = he.Next;
-        } while (he != he0);
-
-        return s;
-    }
-
-    public int[] GetVertexIndices()
-    {
-        int[] idxs = new int[numVerts];
-        HalfEdge he = he0;
-        int i = 0;
-        do
-        {
-            idxs[i++] = he.Head.index;
-            he = he.Next;
-        } while (he != he0);
-
-        return idxs;
-    }
-
-    /// <summary>
-    /// è¿æ¥ä¸¤æ¡è¾¹
-    /// </summary>
-    /// <param name="hedgePrev"></param>
-    /// <param name="hedge"></param>
-    /// <returns></returns>
-    private Face ConnectHalfEdges(HalfEdge hedgePrev, HalfEdge hedge)
-    {
-        Face discardedFace = null;
-
-        if (hedgePrev.OppositeFace == hedge.OppositeFace)
-        {
-            Face oppFace = hedge.OppositeFace;
-            HalfEdge hedgeOpp = null;
-
-            if (hedgePrev == he0)
-            {
-                he0 = hedge;
-            }
-
-            if (oppFace.numVerts == 3)
-            {
-                //è¿™æ ·å°±å¯ä»¥å®Œå…¨è¦†ç›–äº†
-                hedgeOpp = hedge.Opposite.Prev.Opposite;
-
-                oppFace.Mark = c_deleted;
-                discardedFace = oppFace;
-            }
-            else
-            {
-                hedge = hedge.Opposite.Next;
-
-                if (oppFace.he0 == hedgeOpp.Prev)
+                HalfEdge hedgeMax = null;
+                float lenSqrMax = 0;
+                HalfEdge hedge = he0;
+                do
                 {
-                    oppFace.he0 = hedgeOpp;
+                    //ÕÒ³ö×î³¤µÄ±ß
+                    float lenSqr = hedge.lengthSquared();
+                    if (lenSqr > lenSqrMax)
+                    {
+                        hedgeMax = hedge;
+                        lenSqrMax = lenSqr;
+                    }
+
+                    hedge = hedge.next;
+                } while (hedge != he0);
+
+                Vector3 p2 = hedgeMax.Head.pnt;
+                Vector3 p1 = hedgeMax.Tail.pnt;
+                float lenMax = Mathf.Sqrt(lenSqrMax);
+                //TODO:
+                float ux = (p2.x - p1.x) / lenMax;
+                float uy = (p2.y - p1.y) / lenMax;
+                float uz = (p2.z - p1.z) / lenMax;
+                float dot = normal.x * ux + normal.y * uy + normal.z * uz;
+                normal.x -= dot * ux;
+                normal.y -= dot * uy;
+                normal.z -= dot * uz;
+
+                normal.Normalize();
+            }
+        }
+
+        /// <summary>
+        /// ¼ÆËã·¨Ïß
+        /// </summary>
+        public void ComputeNormal()
+        {
+            HalfEdge he1 = he0.next;
+            HalfEdge he2 = he1.next;
+
+            Vector3 p0 = he0.Head.pnt;
+            Vector3 p2 = he1.Head.pnt;
+
+            float d2x = p2.x - p0.x;
+            float d2y = p2.y - p0.y;
+            float d2z = p2.z - p0.z;
+
+            normal = Vector3.zero;
+
+            numVerts = 2;
+
+            while (he2 != he0)
+            {
+                float d1x = d2x;
+                float d1y = d2y;
+                float d1z = d2z;
+                //TODO:
+                p2 = he2.Head.pnt;
+                d2x = p2.x - p0.x;
+                d2y = p2.y - p0.y;
+                d2z = p2.z - p0.z;
+
+                normal.x += d1y * d2z - d1z * d2y;
+                normal.y += d1z * d2x - d1x * d2z;
+                normal.z += d1x * d2y - d1y * d2x;
+
+                he1 = he2;
+                he2 = he2.next;
+                numVerts++;
+            }
+
+            //²æ»ıµÄ¾ø¶ÔÖµµÄÒ»°ë ÊÇÃæ»ı
+            area = normal.magnitude;
+            normal /= area;
+        }
+
+        /// <summary>
+        /// ¼ÆËã·¨ÏßºÍÖĞĞÄµã
+        /// </summary>
+        private void ComputeNormalAndCentroid()
+        {
+            ComputeNormal();
+            ComputeCentroid();
+            planeOffset = Vector3.Dot(normal, centroid);
+            int numv = 0;
+            HalfEdge he = he0;
+            do
+            {
+                numv++;
+                he = he.next;
+            } while (he != he0);
+
+            if (numv != numVerts)
+            {
+                throw new Exception(
+                    "face " + GetVertexString() + " numVerts=" + numVerts + " should be " + numv);
+            }
+        }
+
+        /// <summary>
+        /// ¼ÆËã·¨ÏßºÍÖĞĞÄµã
+        /// </summary>
+        private void ComputeNormalAndCentroid(float minArea)
+        {
+            ComputeNormal(minArea);
+            ComputeCentroid();
+            planeOffset = Vector3.Dot(normal, centroid);
+        }
+
+        /// <summary>
+        /// ´´½¨Èı½ÇÃæ
+        /// </summary>
+        /// <param name="v0"></param>
+        /// <param name="v1"></param>
+        /// <param name="v2"></param>
+        /// <returns></returns>
+        public static Face CreateTriangle(Vertex v0, Vertex v1, Vertex v2)
+        {
+            return CreateTriangle(v0, v1, v2, 0);
+        }
+
+        /// <summary>
+        /// ´´½¨Èı½ÇÃæ
+        /// </summary>
+        /// <param name="v0"></param>
+        /// <param name="v1"></param>
+        /// <param name="v2"></param>
+        /// <param name="minArea"></param>
+        /// <returns></returns>
+        public static Face CreateTriangle(Vertex v0, Vertex v1, Vertex v2, float minArea)
+        {
+            Face face = new Face();
+            HalfEdge he0 = new HalfEdge(v0, face);
+            HalfEdge he1 = new HalfEdge(v1, face);
+            HalfEdge he2 = new HalfEdge(v2, face);
+
+            he0.prev = he2;
+            he0.next = he1;
+            he1.prev = he0;
+            he1.next = he2;
+            he2.prev = he1;
+            he2.next = he0;
+
+            face.he0 = he0;
+
+            //¼ÆËã·¨Ïß ÖĞĞÄµã  ºÍ Æ«ÒÆ
+            face.ComputeNormalAndCentroid(minArea);
+            return face;
+        }
+
+        /// <summary>
+        /// ¸ù¾İ¶¨µÄ¶¥µãºÍË÷Òı ´´½¨ÃæÆ¬
+        /// </summary>
+        /// <param name="vtxArray"></param>
+        /// <param name="indices"></param>
+        /// <returns></returns>
+        public static Face Create(Vertex[] vtxArray, int[] indices)
+        {
+            Face face = new Face();
+            HalfEdge hePrev = null;
+            for (int i = 0; i < indices.Length; i++)
+            {
+                HalfEdge he = new HalfEdge(vtxArray[indices[i]], face);
+                if (hePrev != null)
+                {
+                    he.Prev = hePrev;
+                    hePrev.Next = he;
+                }
+                else
+                {
+                    face.he0 = he;
                 }
 
-                hedgeOpp.Prev = hedgeOpp.Prev.Prev;
-                hedge.Prev.Next = hedge;
+                hePrev = he;
             }
 
-            hedge.Opposite = hedgeOpp;
+            face.he0.Prev = hePrev;
+            hePrev.Next = face.he0;
 
-            //é¢è¢«ä¿®æ”¹äº† æ‰€ä»¥éœ€è¦é‡æ–°è®¡ç®—
-            oppFace.ComputeNormalAndCentroid();
-        }
-        else
-        {
-            hedgePrev.Next = hedge;
-            hedge.Prev = hedgePrev;
+            //¼ÆËã·¨Ïß ÖĞĞÄµã  ºÍ Æ«ÒÆ
+            face.ComputeNormalAndCentroid();
+            return face;
         }
 
-        return discardedFace;
-    }
-
-    /// <summary>
-    /// æ£€æŸ¥æ˜¯å¦æ˜¯ä¸€ä¸ªå¹³é¢
-    /// </summary>
-    public void CheckConsistency()
-    {
-        HalfEdge hedge = he0;
-        float maxd = 0;
-        int numv = 0;
-
-        if (numVerts < 3)
+        public Face()
         {
-            throw new Exception("degenerate face:" + GetVertexString());
+            normal = new Vector3();
+            centroid = new Vector3();
+            mark = c_Visible;
         }
 
-        do
+        /// <summary>
+        /// µÃµ½Ö¸¶¨Ë÷ÒıµÄ±ß
+        /// </summary>
+        /// <param name="i"></param>
+        /// <returns></returns>
+        public HalfEdge GetEdge(int i)
         {
-            HalfEdge hedgeOpp = hedge.Opposite;
-            if (hedgeOpp == null)
+            HalfEdge he = he0;
+            while (i > 0)
+            {
+                he = he.next;
+                i--;
+            }
+
+            while (i < 0)
+            {
+                he = he.prev;
+                i++;
+            }
+
+            return he;
+        }
+
+        /// <summary>
+        /// µÃµ½µÚÒ»Ìõ±ß
+        /// </summary>
+        /// <returns></returns>
+        public HalfEdge GetFirstEdge()
+        {
+            return he0;
+        }
+
+        /// <summary>
+        /// ¸ù¾İÍ·Î²Á½¸öµã,µÃµ½±ß
+        /// </summary>
+        /// <param name="vt"></param>
+        /// <param name="vh"></param>
+        /// <returns></returns>
+        public HalfEdge findEdge(Vertex vt, Vertex vh)
+        {
+            HalfEdge he = he0;
+            do
+            {
+                if (he.Head == vh && he.Tail == vt)
+                {
+                    return he;
+                }
+
+                he = he.next;
+            } while (he != he0);
+
+            return null;
+        }
+
+        /// <summary>
+        /// µãµ½ÃæÆ¬µÄ¾àÀë
+        /// </summary>
+        /// <param name="p"></param>
+        /// <returns></returns>
+        public float DistanceToPlane(Vector3 p)
+        {
+            return normal.x * p.x + normal.y * p.y + normal.z * p.z - planeOffset;
+        }
+
+        /// <summary>
+        /// ·¢ÏÖ
+        /// </summary>
+        public Vector3 Normal => normal;
+
+        /// <summary>
+        /// ÖĞĞÄµã
+        /// </summary>
+        public Vector3 Centroid => centroid;
+
+        /// <summary>
+        /// ¶¥µãµÄÊıÁ¿
+        /// </summary>
+        public int NumVertices => numVerts;
+
+        /// <summary>
+        /// Êä³öĞÅÏ¢
+        /// </summary>
+        /// <returns></returns>
+        public string GetVertexString()
+        {
+            return ToString();
+        }
+
+        public override string ToString()
+        {
+            string s = null;
+            HalfEdge he = he0;
+            do
+            {
+                if (s == null)
+                {
+                    s = "" + he.Head.index;
+                }
+                else
+                {
+                    s += " " + he.Head.index;
+                }
+
+                he = he.next;
+            } while (he != he0);
+
+            return s;
+        }
+
+        /// <summary>
+        /// µÃµ½¶¥µãË÷Òı
+        /// </summary>
+        /// <param name="idxs"></param>
+        public void GetVertexIndices(int[] idxs)
+        {
+            HalfEdge he = he0;
+            int i = 0;
+            do
+            {
+                idxs[i++] = he.Head.index;
+                he = he.next;
+            } while (he != he0);
+        }
+
+        /// <summary>
+        /// Á¬½ÓÁ½Ìõ±ß
+        /// </summary>
+        /// <param name="hedgePrev"></param>
+        /// <param name="hedge"></param>
+        /// <returns></returns>
+        private Face ConnectHalfEdges(HalfEdge hedgePrev, HalfEdge hedge)
+        {
+            Face discardedFace = null;
+
+            if (hedgePrev.OppositeFace == hedge.OppositeFace)
+            {
+                //È»ºóÈ¥µôÒ»¸ö¶àÓàµÄ±ßÔµ
+                Face oppFace = hedge.OppositeFace;
+                HalfEdge hedgeOpp;
+
+                if (hedgePrev == he0)
+                {
+                    he0 = hedge;
+                }
+
+                if (oppFace.NumVertices == 3)
+                {
+                    //ÕâÑù¾Í¿ÉÒÔÍêÈ«¸²¸ÇÁË
+                    hedgeOpp = hedge.Opposite.prev.Opposite;
+
+                    oppFace.mark = c_Deleted;
+                    discardedFace = oppFace;
+                }
+                else
+                {
+                    hedgeOpp = hedge.Opposite.next;
+
+                    if (oppFace.he0 == hedgeOpp.prev)
+                    {
+                        oppFace.he0 = hedgeOpp;
+                    }
+
+                    hedgeOpp.prev = hedgeOpp.prev.prev;
+                    hedgeOpp.prev.next = hedgeOpp;
+                }
+
+                hedge.prev = hedgePrev.prev;
+                hedge.prev.next = hedge;
+
+                hedge.opposite=hedgeOpp;
+
+                //Ãæ±»ĞŞ¸ÄÁË ËùÒÔĞèÒªÖØĞÂ¼ÆËã
+                oppFace.ComputeNormalAndCentroid();
+            }
+            else
+            {
+                hedgePrev.next = hedge;
+                hedge.prev = hedgePrev;
+            }
+
+            return discardedFace;
+        }
+
+        /// <summary>
+        /// ¼ì²éÊÇ·ñÊÇÒ»¸öÆ½Ãæ
+        /// </summary>
+        void CheckConsistency()
+        {
+            //ÔÚÃæÉÏ×ö¼ì²é
+            HalfEdge hedge = he0;
+            float maxd = 0;
+            int numv = 0;
+
+            if (numVerts < 3)
             {
                 throw new Exception(
-                    "face " + GetVertexString() + ": " +
-                    "unreflected half edge " + hedge.GetVertexString());
+                    "degenerate face: " + GetVertexString());
             }
-            else if (hedgeOpp.Opposite != hedge)
+
+            do
+            {
+                HalfEdge hedgeOpp = hedge.Opposite;
+                if (hedgeOpp == null)
+                {
+                    throw new Exception(
+                        "face " + GetVertexString() + ": " +
+                        "unreflected half edge " + hedge.GetVertexString());
+                }
+                else if (hedgeOpp.Opposite != hedge)
+                {
+                    throw new Exception(
+                        "face " + GetVertexString() + ": " +
+                        "opposite half edge " + hedgeOpp.GetVertexString() +
+                        " has opposite " +
+                        hedgeOpp.Opposite.GetVertexString());
+                }
+
+                if (hedgeOpp.Head != hedge.Tail ||
+                    hedge.Head != hedgeOpp.Tail)
+                {
+                    throw new Exception(
+                        "face " + GetVertexString() + ": " +
+                        "half edge " + hedge.GetVertexString() +
+                        " reflected by " + hedgeOpp.GetVertexString());
+                }
+
+                Face oppFace = hedgeOpp.face;
+                if (oppFace == null)
+                {
+                    throw new Exception(
+                        "face " + GetVertexString() + ": " +
+                        "no face on half edge " + hedgeOpp.GetVertexString());
+                }
+                else if (oppFace.mark == c_Deleted)
+                {
+                    throw new Exception(
+                        "face " + GetVertexString() + ": " +
+                        "opposite face " + oppFace.GetVertexString() +
+                        " not on hull");
+                }
+
+                float d = Mathf.Abs(DistanceToPlane(hedge.Head.pnt));
+                if (d > maxd)
+                {
+                    maxd = d;
+                }
+
+                numv++;
+                hedge = hedge.next;
+            } while (hedge != he0);
+
+            if (numv != numVerts)
             {
                 throw new Exception(
-                    "face " + GetVertexString() + ": " +
-                    "opposite half edge " + hedgeOpp.GetVertexString() +
-                    " has opposite " +
-                    hedgeOpp.Opposite.GetVertexString());
+                    "face " + GetVertexString() + " numVerts=" + numVerts + " should be " + numv);
             }
+        }
 
-            if (hedgeOpp.Head != hedge.Tail || hedge.Head != hedgeOpp.Tail)
+        /// <summary>
+        /// ºÏ²¢ÏàÁÚµÄÃæ
+        /// </summary>
+        /// <param name="hedgeAdj"></param>
+        /// <param name="discarded"></param>
+        /// <returns></returns>
+        public int MergeAdjacentFace(HalfEdge hedgeAdj,
+            Face[] discarded)
+        {
+            Face oppFace = hedgeAdj.OppositeFace;
+            int numDiscarded = 0;
+
+            discarded[numDiscarded++] = oppFace;
+            oppFace.mark = c_Deleted;
+
+            HalfEdge hedgeOpp = hedgeAdj.Opposite;
+
+            HalfEdge hedgeAdjPrev = hedgeAdj.prev;
+            HalfEdge hedgeAdjNext = hedgeAdj.next;
+            HalfEdge hedgeOppPrev = hedgeOpp.prev;
+            HalfEdge hedgeOppNext = hedgeOpp.next;
+
+            while (hedgeAdjPrev.OppositeFace == oppFace)
             {
-                throw new Exception(
-                    "face " + GetVertexString() + ": " +
-                    " half edge " + hedge.GetVertexString() +
-                    " reflected by " + hedgeOpp.GetVertexString());
+                hedgeAdjPrev = hedgeAdjPrev.prev;
+                hedgeOppNext = hedgeOppNext.next;
             }
 
-            Face oppFace = hedgeOpp.Face;
-            if (oppFace == null)
+            while (hedgeAdjNext.OppositeFace == oppFace)
             {
-                throw new Exception(
-                    "face " + GetVertexString() + ": " +
-                    "no face on half edge " + hedgeOpp.GetVertexString());
+                hedgeOppPrev = hedgeOppPrev.prev;
+                hedgeAdjNext = hedgeAdjNext.next;
             }
-            else if (oppFace.Mark == c_deleted)
+
+            HalfEdge hedge;
+
+            for (hedge = hedgeOppNext; hedge != hedgeOppPrev.next; hedge = hedge.next)
             {
-                throw new Exception(
-                    "face " + GetVertexString() + ": " +
-                    "opposite face " + oppFace.GetVertexString() +
-                    " not on hull");
+                hedge.face = this;
             }
 
-            float d = Mathf.Abs(DistanceToPlane(hedge.Head.pnt));
-            if (d > maxd)
+            if (hedgeAdj == he0)
             {
-                maxd = d;
+                he0 = hedgeAdjNext;
             }
 
-            numv++;
-            hedge = hedge.Next;
-        } while (hedge != he0);
+            //´¦Àí±ßµÄÍ·½Úµã
+            Face discardedFace;
 
-        if (numv != numVerts)
-        {
-            throw new Exception(
-                "face " + GetVertexString() + " numVerts=" + numVerts + " should be " + numv);
-        }
-    }
-
-    /// <summary>
-    /// åˆå¹¶ç›¸é‚»çš„é¢
-    /// </summary>
-    /// <param name="hedgeAdj"></param>
-    /// <param name="discarded"></param>
-    /// <returns></returns>
-    public int MergeAdjacentFace(HalfEdge hedgeAdj, Face[] discarded)
-    {
-        Face oppFace = hedgeAdj.OppositeFace;
-        int numDiscarded = 0;
-
-        discarded[numDiscarded++] = oppFace;
-        oppFace.Mark = c_deleted;
-
-        HalfEdge hedgeOpp = hedgeAdj.Opposite;
-
-        HalfEdge hedgeAdjPrev = hedgeAdj.Prev;
-        HalfEdge hedgeAdjNext = hedgeAdj.Next;
-        HalfEdge hedgeOppPrev = hedgeOpp.Prev;
-        HalfEdge hedgeOppNext = hedgeOpp.Next;
-
-        while (hedgeAdjPrev.OppositeFace == oppFace)
-        {
-            hedgeAdjPrev = hedgeAdjPrev.Prev;
-            hedgeOppNext = hedgeOppNext.Next;
-        }
-
-        while (hedgeAdjNext.OppositeFace == oppFace)
-        {
-            hedgeOppPrev = hedgeOppPrev.Prev;
-            hedgeAdjNext = hedgeAdjNext.Next;
-        }
-
-        HalfEdge hedge;
-
-        for (hedge = hedgeOppNext; hedge != hedgeOppPrev.Next; hedge = hedge.Next)
-        {
-            hedge.Face = this;
-        }
-
-        if (hedgeAdj == he0)
-        {
-            he0 = hedgeAdjNext;
-        }
-
-
-        Face discardedFace;
-
-        //å¤„ç†è¾¹çš„å¤´èŠ‚ç‚¹
-        discardedFace = ConnectHalfEdges(hedgeOppPrev, hedgeAdjNext);
-        if (discardedFace != null)
-        {
-            discarded[numDiscarded++] = discardedFace;
-        }
-
-        //å¤„ç†è¾¹çš„å°¾èŠ‚ç‚¹
-        discardedFace = ConnectHalfEdges(hedgeAdjPrev, hedgeOppNext);
-        if (discardedFace != null)
-        {
-            discarded[numDiscarded++] = discardedFace;
-        }
-
-        ComputeNormalAndCentroid();
-        CheckConsistency();
-
-        return numDiscarded;
-    }
-
-    /// <summary>
-    /// é€šè¿‡ä¸¤æ¡è¾¹ è®¡ç®—å¹³æ–¹é¢ç§¯
-    /// </summary>
-    /// <param name="hedge0"></param>
-    /// <param name="hedge1"></param>
-    /// <returns></returns>
-    private float AreaSquared(HalfEdge hedge0, HalfEdge hedge1)
-    {
-        //è¿”å›ä¸¤æ¡è¾¹äº§ç”Ÿçš„é¢ç§¯
-
-        Vector3 p0 = hedge0.Tail.pnt;
-        Vector3 p1 = hedge0.Head.pnt;
-        Vector3 p2 = hedge1.Head.pnt;
-
-        Vector3 d1 = p1 - p0;
-        Vector3 d2 = p2 - p0;
-
-
-        Vector3 dx = Vector3.Cross(d1, d2);
-
-        return Vector3.Dot(dx, dx);
-    }
-
-    /// <summary>
-    /// ä¸‰è§’åŒ–
-    /// </summary>
-    /// <param name="newFaces"></param>
-    /// <param name="minArea"></param>
-    public void Triangulate(FaceList newFaces, float minArea)
-    {
-        HalfEdge hedge;
-
-        if (NumVertices < 4)
-        {
-            return;
-        }
-
-        Vertex v0 = he0.Head;
-        Face prevFace = null;
-
-        hedge = he0.Next;
-        HalfEdge oppPrev = hedge.Opposite;
-        Face face0 = null;
-
-        for (hedge = hedge.Next; hedge != he0.Prev; hedge = hedge.Next)
-        {
-            Face face = CreateTriangle(v0, hedge.Prev.Head, hedge.Head, minArea);
-            face.he0.Next.Opposite = oppPrev;
-            face.he0.Prev.Opposite = hedge.Opposite;
-            oppPrev = face.he0;
-            newFaces.Add(face);
-            if (face0 == null)
+            discardedFace = ConnectHalfEdges(hedgeOppPrev, hedgeAdjNext);
+            if (discardedFace != null)
             {
-                face0 = face;
+                discarded[numDiscarded++] = discardedFace;
             }
+
+            //´¦Àí±ßµÄÎ²½Úµã
+            discardedFace = ConnectHalfEdges(hedgeAdjPrev, hedgeOppNext);
+            if (discardedFace != null)
+            {
+                discarded[numDiscarded++] = discardedFace;
+            }
+
+            ComputeNormalAndCentroid();
+            CheckConsistency();
+
+            return numDiscarded;
         }
 
-        hedge = new HalfEdge(he0.Prev.Prev.Head, this);
-        hedge.Opposite = oppPrev;
-
-        hedge.Prev = he0;
-        hedge.Prev.Next = hedge;
-
-        hedge.Next = he0.Prev;
-        hedge.Next.Prev = hedge;
-
-        ComputeNormalAndCentroid(minArea);
-        CheckConsistency();
-
-        for (Face face = face0; face != null; face = face.next)
+        /// <summary>
+        /// Í¨¹ıÁ½Ìõ±ß  ¼ÆËãÆ½·½Ãæ»ı
+        /// </summary>
+        /// <param name="hedge0"></param>
+        /// <param name="hedge1"></param>
+        /// <returns></returns>
+        private float AreaSquared(HalfEdge hedge0, HalfEdge hedge1)
         {
-            face.CheckConsistency();
+            //·µ»ØÁ½Ìõ±ß²úÉúµÄÃæ»ı
+            //TODO:
+            Vector3 p0 = hedge0.Tail.pnt;
+            Vector3 p1 = hedge0.Head.pnt;
+            Vector3 p2 = hedge1.Head.pnt;
+
+            float dx1 = p1.x - p0.x;
+            float dy1 = p1.y - p0.y;
+            float dz1 = p1.z - p0.z;
+
+            float dx2 = p2.x - p0.x;
+            float dy2 = p2.y - p0.y;
+            float dz2 = p2.z - p0.z;
+
+            float x = dy1 * dz2 - dz1 * dy2;
+            float y = dz1 * dx2 - dx1 * dz2;
+            float z = dx1 * dy2 - dy1 * dx2;
+
+            return x * x + y * y + z * z;
+        }
+
+        /// <summary>
+        /// Èı½Ç»¯
+        /// </summary>
+        /// <param name="newFaces"></param>
+        /// <param name="minArea"></param>
+        public void Triangulate(FaceList newFaces, float minArea)
+        {
+            HalfEdge hedge;
+
+            if (NumVertices < 4)
+            {
+                return;
+            }
+
+            Vertex v0 = he0.Head;
+            Face prevFace = null;
+
+            hedge = he0.next;
+            HalfEdge oppPrev = hedge.opposite;
+            Face face0 = null;
+
+            for (hedge = hedge.next; hedge != he0.prev; hedge = hedge.next)
+            {
+                Face face =
+                    CreateTriangle(v0, hedge.prev.Head, hedge.Head, minArea);
+                face.he0.next.Opposite=oppPrev;
+                face.he0.prev.Opposite=hedge.opposite;
+                oppPrev = face.he0;
+                newFaces.Add(face);
+                if (face0 == null)
+                {
+                    face0 = face;
+                }
+            }
+
+            hedge = new HalfEdge(he0.prev.prev.Head, this);
+            hedge.Opposite=oppPrev;
+
+            hedge.prev = he0;
+            hedge.prev.next = hedge;
+
+            hedge.next = he0.prev;
+            hedge.next.prev = hedge;
+
+            ComputeNormalAndCentroid(minArea);
+            CheckConsistency();
+
+            for (Face face = face0; face != null; face = face.next)
+            {
+                face.CheckConsistency();
+            }
         }
     }
 }

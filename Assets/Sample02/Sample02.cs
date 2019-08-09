@@ -1,98 +1,93 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using UnityEngine;
-
-public static class ExMethod
+namespace QHull
 {
-    public static void AddPoint(this List<Vector3> list, double x, double y, double z)
+    using System;
+    using System.Collections;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Text;
+    using UnityEngine;
+
+
+    public class Sample02 : MonoBehaviour
     {
-        list.Add(new Vector3((float) x, (float) y, (float) z));
-    }
+        public MeshFilter ori, col;
+        public GameObject prefab_s, prefab_m;
+        private int[] faceArray, triArray;
 
-    public static void AddPoint(this List<Vector3> list, float x, float y, float z)
-    {
-        list.Add(new Vector3(x, y, z));
-    }
-}
 
-public class Sample02 : MonoBehaviour
-{
-    public Mesh mesh;
-    public GameObject prefab;
-
-    private IEnumerator Start()
-    {
-        Vector3[] pointArray = AddPointData();
-        pointArray = mesh.vertices;
-
-        QuickHull3D hull = new QuickHull3D();
-        yield return new WaitForSeconds(0.1f);
-        hull.Build(pointArray);
-
-        StringBuilder sb = new StringBuilder();
-        sb.Append("Vertices:" + '\n');
-        Vector3[] vertices = hull.GetVertices();
-        foreach (var vert in vertices)
+        public void Awake()
         {
-            sb.Append(vert.ToString() + '\n');
-        }
+            Vector3[] v3s = ori.mesh.vertices;
+            AABB aabb = new AABB();
+            var abps = aabb.Build(v3s);
+            var points = abps.ToArray();
 
-        Debug.Log(sb.ToString());
-
-        foreach (var v3 in vertices)
-        {
-            Instantiate(prefab, v3, Quaternion.identity);
-        }
-
-        sb.Clear();
-        sb.Append("Faces:" + '\n');
-        int[][] faceIndices = hull.GetFaces();
-        for (int i = 0; i < faceIndices.Length && i < vertices.Length; i++)
-        {
-            for (int j = 0; j < faceIndices[i].Length; j++)
+            foreach (var point in abps)
             {
-                sb.Append(faceIndices[i][j] + " ");
+                //Instantiate(prefab_s, point, Quaternion.identity);
             }
 
-            sb.Append('\n');
+            Debug.Log("Ori Vertex Count:" + v3s.Length);
+
+            QuickHull3D hull = new QuickHull3D();
+            hull.Build(points);
+
+            Vector3[] vertices = hull.GetVertices();
+            StringBuilder sb = new StringBuilder();
+            sb.Append($"Vertices:{vertices.Length}\n");
+            for (int i = 0; i < vertices.Length; i++)
+            {
+                Vector3 pnt = vertices[i];
+                sb.Append($"  {pnt.x},{pnt.y},{pnt.z}\n");
+            }
+
+            Debug.Log(sb.ToString());
+
+
+            sb.Clear();
+            List<int> faces = new List<int>();
+            int[][] faceIndices = hull.GetFaces();
+            sb.Append($"Faces:{vertices.Length}\n");
+            for (int i = 0; i < vertices.Length; i++)
+            {
+                for (int j = 0; i < faceIndices.Length && j < faceIndices[i].Length; j++)
+                {
+                    sb.Append($"{faceIndices[i][j]} ");
+                    if (j >= 2)
+                    {
+                        faces.Add(faceIndices[i][0]);
+                        for (int k = -1; k <= 0; k++)
+                        {
+                            faces.Add(faceIndices[i][j + k]);
+                        }
+                    }
+
+                    Instantiate(prefab_m, vertices[faceIndices[i][j]], Quaternion.identity);
+                }
+
+                sb.Append('\n');
+            }
+
+            Debug.Log(sb.ToString());
+            sb.Clear();
+
+            faceArray = faces.ToArray();
+            triArray = new int[faceArray.Length];
+            Mesh mesh = new Mesh {vertices = vertices, triangles = faceArray};
+            col.mesh = mesh;
+            //StartCoroutine(NewMesh());
         }
 
-        Debug.Log(sb.ToString());
-    }
-
-
-    private Vector3[] AddPointData()
-    {
-        List<Vector3> points = new List<Vector3>();
-        points.AddPoint(0.0, 0.0, 0.0);
-        points.AddPoint(1.0, 0.5, 0.0);
-        points.AddPoint(2.0, 0.0, 0.0);
-        points.AddPoint(0.5, 0.5, 0.5);
-        points.AddPoint(0.0, 0.0, 2.0);
-        points.AddPoint(0.1, 0.2, 0.3);
-        points.AddPoint(0.0, 2.0, 0.0);
-        points.AddPoint(-1.0, 0, 0.0);
-        points.AddPoint(0.0, 0.0, -1.0);
-        points.AddPoint(-1.0, -1.0, 1.0);
-        return points.ToArray();
-    }
-
-    private void ToString(Vector3[] v3s)
-    {
-        StringBuilder sb = new StringBuilder();
-        sb.Append("        points = new Point3d[]{\n");
-        foreach (var v3 in v3s)
+        private IEnumerator NewMesh()
         {
-            sb.Append($"                        new Point3d({v3.x},{v3.y},{v3.z}),\n");
-        }
-
-        sb.Append("        };");
-        var bbs = System.Text.Encoding.Default.GetBytes(sb.ToString());
-        using (var fs = File.Open("tt.txt", FileMode.Create))
-        {
-            fs.Write(bbs,0, bbs.Length);
+            for (int i = 0; i < faceArray.Length / 3; i++)
+            {
+                triArray[3 * i + 0] = faceArray[3 * i + 0];
+                triArray[3 * i + 1] = faceArray[3 * i + 1];
+                triArray[3 * i + 2] = faceArray[3 * i + 2];
+                col.mesh.triangles = triArray;
+                yield return new WaitForSeconds(0.05f);
+            }
         }
     }
 }

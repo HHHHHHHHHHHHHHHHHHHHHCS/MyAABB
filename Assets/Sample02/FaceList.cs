@@ -1,48 +1,52 @@
-ï»¿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-/// <summary>
-/// ç®€å•çš„Faceé“¾è¡¨
-/// </summary>
-public class FaceList
+namespace QHull
 {
-    private Face head;
-    private Face tail;
-
-    
-    /// <summary>
-    /// æ¸…é™¤é“¾è¡¨
-    /// </summary>
-    public void Clear()
-    {
-        head = tail = null;
-    }
+    using System;
 
     /// <summary>
-    /// æ·»åŠ å…ƒç´ åˆ°é“¾è¡¨
+    /// ÃæµÄÁ´±í
     /// </summary>
-    /// <param name="vtx"></param>
-    public void Add(Face face)
+    public class FaceList
     {
-        if (head == null)
+        private Face head;
+        private Face tail;
+
+        /// <summary>
+        /// Çå¿ÕÁ´±í
+        /// </summary>
+        public void Clear()
         {
-            head = face;
-        }
-        else
-        {
-            tail.next = face;
+            head = tail = null;
         }
 
-        face.next = null;
-        tail = face;
+        /// <summary>
+        /// °ÑÃæÌí¼Óµ½Á´±íÀïÃæ
+        /// </summary>
+        /// <param name="vtx"></param>
+        public void Add(Face vtx)
+        {
+            if (head == null)
+            {
+                head = vtx;
+            }
+            else
+            {
+                tail.next = vtx;
+            }
+
+            vtx.next = null;
+            tail = vtx;
+        }
+
+        /// <summary>
+        /// ·µ»ØµÚÒ»¸öÃæ
+        /// </summary>
+        /// <returns></returns>
+        public Face First() => head;
+
+
+        /// <summary>
+        /// ÊÇ·ñÊÇ¿ÕµÄÁ´±í
+        /// </summary>
+        public bool IsEmpty => head == null;
     }
-
-    public Face First => head;
-
-    /// <summary>
-    /// æ£€æŸ¥é“¾è¡¨æ˜¯å¦ä¸ºç©º
-    /// </summary>
-    /// <returns></returns>
-    public bool IsEmpty()=> head == null;
 }

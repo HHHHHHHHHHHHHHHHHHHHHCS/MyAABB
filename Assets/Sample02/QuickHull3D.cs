@@ -1,1451 +1,1191 @@
-ï»¿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
-using UnityEngine;
-using Debug = UnityEngine.Debug;
-
-public class QuickHull3D
+namespace QHull
 {
-    /// <summary>
-    /// æŒ‰ç…§é¡ºæ—¶é’ˆè¾“å‡ºé¡¶ç‚¹
-    /// </summary>
-    public const int c_clockwise = 0x1;
+    using System;
+    using System.Collections.Generic;
+    using System.Net;
+    using UnityEngine;
 
-    /// <summary>
-    /// åœ¨è¾“å‡ºçš„æ—¶å€™é¢çš„é¡¶ç‚¹æ˜¯ä»1å¼€å§‹çš„
-    /// </summary>
-    public const int c_indexFromOne = 0x2;
-
-    /// <summary>
-    /// åœ¨è¾“å‡ºçš„æ—¶å€™é¢çš„é¡¶ç‚¹æ˜¯ä»0å¼€å§‹çš„
-    /// </summary>
-    public const int c_indexFromZero = 0x4;
-
-    /// <summary>
-    /// åœ¨è¾“å‡ºçš„æ—¶å€™é¢çš„é¡¶ç‚¹æ˜¯ç›¸å¯¹äºè¾“å…¥é¡¶ç‚¹çš„ç¼–å·
-    /// </summary>
-    public const int c_pointRelative = 0x8;
-
-    /// <summary>
-    /// æ ¹æ®è¾“å…¥ç‚¹æ•°æ®è‡ªåŠ¨è®¡ç®—è·ç¦»å…¬å·®
-    /// </summary>
-    public const float c_automaticTolerance = -1;
-
-    /// <summary>
-    /// é—´éš”æœ€å°æµ®ç‚¹æ•°
-    /// </summary>
-    private const float c_floatPrec = float.Epsilon;
-
-    /// <summary>
-    /// è¦è¢«æŸ¥æ‰¾çš„index
-    /// </summary>
-    protected int findIndex = -1;
-
-    /// <summary>
-    /// ä¸‰è§†å›¾AABBæœ€é•¿çš„é‚£æ¡
-    /// </summary>
-    protected float charLength;
-
-    /// <summary>
-    /// è®¾ç½®debugæ¨¡å¼
-    /// </summary>
-    public bool IsDebug { get; set; } = false;
-
-    protected Vertex[] pointBuffer = new Vertex[0];
-    protected int[] vertexPointIndices = new int[0];
-    private Face[] discardedFaces = new Face[3];
-
-    protected List<Face> faces = new List<Face>(16);
-
-    protected List<HalfEdge> horizon = new List<HalfEdge>(16);
-
-
-    private Vertex[] maxVtxs = new Vertex[3];
-    private Vertex[] minVtxs = new Vertex[3];
-
-    private FaceList newFaces = new FaceList();
-    private VertexList unclaimed = new VertexList();
-    private VertexList claimed = new VertexList();
-
-    protected int numVertices;
-    protected int numFaces;
-    protected int numPoints;
-
-    protected float explicitTolerance = c_automaticTolerance;
-    protected float tolerance;
-
-    /// <summary>
-    /// å¾—åˆ°è·ç¦»å…¬å·®,ç”¨äºåˆ¤æ–­å“ªé‡Œå‡¸èµ·
-    /// </summary>
-    public float DistanceTolerance => tolerance;
-
-    /// <summary>
-    /// è‡ªåŠ¨ä»ç‚¹,è®¡ç®—æ˜¾å¼è·ç¦»å…¬å·®
-    /// </summary>
-    public float ExplicitTolerance
+    public class QuickHull3D
     {
-        get => explicitTolerance;
-        set => explicitTolerance = value;
-    }
+        /// <summary>
+        /// °´ÕÕË³Ê±ÕëÊä³ö¶¥µã  Õı·´ÃæÓÃ
+        /// </summary>
+        public const int c_ClockWise = 0x1;
 
-    /// <summary>
-    /// ç»™é¢æ·»åŠ point
-    /// </summary>
-    /// <param name="vtx"></param>
-    /// <param name="face"></param>
-    private void AddPointToFace(Vertex vtx, Face face)
-    {
-        vtx.face = face;
+        /// <summary>
+        /// ÔÚÊä³öµÄÊ±ºòÃæµÄ¶¥µãÊÇ´Ó1¿ªÊ¼µÄ
+        /// </summary>
+        public const int c_IndexFromOne = 0x2;
 
-        if (face.outside == null)
+        /// <summary>
+        /// ÔÚÊä³öµÄÊ±ºòÃæµÄ¶¥µãÊÇ´Ó0¿ªÊ¼µÄ
+        /// </summary>
+        public const int c_IndexFromZero = 0x4;
+
+        /// <summary>
+        /// ÔÚÊä³öµÄÊ±ºòÃæµÄ¶¥µãÊÇÏà¶ÔÓÚÊäÈë¶¥µãµÄ±àºÅ
+        /// </summary>
+        public const int c_PointRelative = 0x8;
+
+        /// <summary>
+        /// ¸ù¾İÊäÈëµãÊı¾İ×Ô¶¯¼ÆËã¾àÀë¹«²î
+        /// </summary>
+        public const float c_AutomaticTolerance = -1;
+
+        /// <summary>
+        /// Òª±»²éÕÒµÄindex
+        /// </summary>
+        protected int findIndex = -1;
+
+        /// <summary>
+        /// ÈıÊÓÍ¼AABB×î³¤µÄÄÇÌõ
+        /// </summary>
+        protected float charLength;
+
+
+        protected Vertex[] pointBuffer = new Vertex[0];
+        protected int[] vertexPointIndices = new int[0];
+        private Face[] discardedFaces = new Face[3];
+
+        private Vertex[] maxVtxs = new Vertex[3];
+        private Vertex[] minVtxs = new Vertex[3];
+
+        protected List<Face> faces = new List<Face>(16);
+
+        protected List<HalfEdge> horizon = new List<HalfEdge>(16);
+
+        private FaceList newFaces = new FaceList();
+        private VertexList unclaimed = new VertexList();
+        private VertexList claimed = new VertexList();
+
+        protected int numVertices;
+        protected int numFaces;
+        protected int numPoints;
+
+        protected float explicitTolerance = c_AutomaticTolerance;
+        protected float tolerance;
+
+        /// <summary>
+        /// ÊÇ·ñ¿ªÆôdebug
+        /// </summary>
+        public bool IsDebug { get; set; } = false;
+
+        /// <summary>
+        /// ¼ä¸ô×îĞ¡¸¡µãÊı
+        /// </summary>
+        private const float c_FloatPrec = float.Epsilon;
+
+
+        /// <summary>
+        /// µÃµ½¾àÀë¹«²î,ÓÃÓÚÅĞ¶ÏÄÄÀïÍ¹Æğ
+        /// </summary>
+        public float DistanceTolerance => tolerance;
+
+        /// <summary>
+        /// ×Ô¶¯´Óµã,¼ÆËãÏÔÊ½¾àÀë¹«²î
+        /// </summary>
+        public float ExplicitDistanceTolerance
         {
-            claimed.Add(vtx);
-        }
-        else
-        {
-            claimed.InsertBefore(vtx, face.outside);
+            get => explicitTolerance;
+            set => explicitTolerance = value;
         }
 
-        face.outside = vtx;
-    }
+        private bool isShow = true;
 
-    /// <summary>
-    /// ç§»é™¤å¹³é¢çš„ç‰¹å®šçš„ç‚¹
-    /// </summary>
-    /// <param name="vtx"></param>
-    /// <param name="face"></param>
-    private void RemovePointFromFace(Vertex vtx, Face face)
-    {
-        if (vtx == face.outside)
+        /// <summary>
+        /// °Ñµã¼Óµ½ÃæÀïÃæ
+        /// </summary>
+        /// <param name="vtx"></param>
+        /// <param name="face"></param>
+        private void AddPointToFace(Vertex vtx, Face face)
         {
-            if (vtx.next != null && vtx.next.face == face)
+            vtx.face = face;
+
+            if (face.outside == null)
             {
-                face.outside = vtx.next;
+                claimed.Add(vtx);
             }
             else
             {
-                face.outside = null;
-            }
-        }
-
-        claimed.Delete(vtx);
-    }
-
-    /// <summary>
-    /// æŠŠå¹³é¢çš„å…¨éƒ¨çš„ç‚¹éƒ½åˆ é™¤
-    /// </summary>
-    /// <param name="face"></param>
-    /// <returns></returns>
-    private Vertex RemoveAllPointsFromFace(Face face)
-    {
-        if (face.outside != null)
-        {
-            Vertex end = face.outside;
-            while (end.next != null && end.next.face == face)
-            {
-                end = end.next;
+                claimed.InsertBefore(vtx, face.outside);
             }
 
-            claimed.Delete(face.outside, end);
-            end.next = null;
-            return face.outside;
-        }
-        else
-        {
-            return null;
-        }
-    }
-
-
-    /// <summary>
-    /// åˆ›å»ºä¸€ä¸ªç©ºçš„å‡¸ç‚¹åŒ…å›´ç›’
-    /// </summary>
-    public QuickHull3D()
-    {
-    }
-
-    /// <summary>
-    /// æ ¹æ®è¾“å…¥çš„float  å½¢æˆfloat/3ä¸ªç‚¹  è¿›è¡Œè®¡ç®—å‡¸ç‚¹åŒ…å›´ç›’
-    /// </summary>
-    /// <param name="coords"></param>
-    public QuickHull3D(float[] coords)
-    {
-        Build(coords, coords.Length / 3);
-    }
-
-
-    /// <summary>
-    /// æ ¹æ®è¾“å…¥çš„ç‚¹,è¿›è¡Œç”Ÿæˆå‡¸ç‚¹åŒ…å›´ç›’
-    /// </summary>
-    /// <param name="points"></param>
-    public QuickHull3D(Vector3[] points)
-    {
-        Build(points, points.Length);
-    }
-
-    /// <summary>
-    /// æ ¹æ®å¤´èŠ‚ç‚¹å’Œå°¾èŠ‚ç‚¹ æš´åŠ›æŸ¥æ‰¾è¾¹
-    /// æ­£å¸¸èµ°SetHullæµç¨‹,æ‰€ä»¥ä¸å¸¸ç”¨
-    /// </summary>
-    /// <param name="tail"></param>
-    /// <param name="head"></param>
-    /// <returns></returns>
-    private HalfEdge FindHalfEdge(Vertex tail, Vertex head)
-    {
-        foreach (var item in faces)
-        {
-            HalfEdge he = item.FindEdge(tail, head);
-            return he;
+            face.outside = vtx;
         }
 
-        return null;
-    }
-
-    protected void SetHull(float[] coords, int nump, int[][] faceIndices, int numf)
-    {
-        InitBuffers(nump);
-        SetPoints(coords, nump);
-        ComputeMaxAndMin();
-        for (int i = 0; i < numf; i++)
+        /// <summary>
+        /// ÒÆ³ıÃæÖĞµÄµã
+        /// </summary>
+        /// <param name="vtx"></param>
+        /// <param name="face"></param>
+        private void RemovePointFromFace(Vertex vtx, Face face)
         {
-            Face face = Face.Create(pointBuffer, faceIndices[i]);
-            HalfEdge he = face.HE0;
-            do
+            if (vtx == face.outside)
             {
-                HalfEdge heOpp = FindHalfEdge(he.Head, he.Tail);
-                if (heOpp != null)
+                if (vtx.next != null && vtx.next.face == face)
                 {
-                    he.Opposite = heOpp;
+                    face.outside = vtx.next;
+                }
+                else
+                {
+                    face.outside = null;
+                }
+            }
+
+            claimed.Delete(vtx);
+        }
+
+        /// <summary>
+        /// °ÑÃæÖĞµÄµãÈ«²¿ÒÆ³ı
+        /// </summary>
+        /// <param name="face"></param>
+        /// <returns></returns>
+        private Vertex RemoveAllPointsFromFace(Face face)
+        {
+            if (face.outside != null)
+            {
+                Vertex end = face.outside;
+                while (end.next != null && end.next.face == face)
+                {
+                    end = end.next;
                 }
 
-                he = he.Next;
-            } while (he != face.HE0);
-            faces.Add(face);
-        }
-    }
-
-    private void PrintQhullErrors(Process proc)
-    {
-        Debug.LogError("Call Error Function->PrintQhullErrors");
-        /*
-        boolean wrote = false;
-        InputStream es = proc.getErrorStream();
-        while (es.available() > 0)
-        {
-            System.out.write(es.read());
-            wrote = true;
-        }
-        if (wrote)
-        {
-            System.out.println("");
-        }
-        */
-    }
-
-    protected void SetFromQhull(float[] coords, int nump, bool triangulate)
-    {
-        Debug.LogError("Call Error Function->SetFromQhull");
-        /*
-        String commandStr = "./qhull i";
-        if (Triangulate)
-        {
-            commandStr += " -Qt";
-        }
-
-        try
-        {
-            Process proc = Runtime.getRuntime().exec(commandStr);
-            PrintStream ps = new PrintStream(proc.getOutputStream());
-            StreamTokenizer stok =
-                new StreamTokenizer(
-                    new InputStreamReader(proc.getInputStream()));
-            ps.println("3 " + nump);
-            for (int i = 0; i < nump; i++)
+                claimed.Delete(face.outside, end);
+                end.next = null;
+                return face.outside;
+            }
+            else
             {
-                ps.println(
-                    coords[i * 3 + 0] + " " +
-                    coords[i * 3 + 1] + " " +
-                    coords[i * 3 + 2]);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// ¿ÕµÄ¹¹Ôìº¯Êı
+        /// </summary>
+        public QuickHull3D()
+        {
+        }
+
+        /// <summary>
+        /// ÓÃfloat[]->xyz½øĞĞ¹¹Ôì
+        /// </summary>
+        /// <param name="coords"></param>
+        public QuickHull3D(float[] coords)
+        {
+            Build(coords, coords.Length / 3);
+        }
+
+        /// <summary>
+        /// ÓÃÎ»ÖÃµã½øĞĞ¹¹Ôì
+        /// </summary>
+        /// <param name="points"></param>
+        public QuickHull3D(Vector3[] points)
+        {
+            Build(points, points.Length);
+        }
+
+        /// <summary>
+        /// ¸ù¾İÊäÈëµÄÍ·Î²µã±©Á¦²éÕÒ±ß
+        /// Õı³£×ßSetHullÁ÷³Ì,ËùÒÔ²»³£ÓÃ
+        /// </summary>
+        /// <param name="tail"></param>
+        /// <param name="head"></param>
+        /// <returns></returns>
+        private HalfEdge FindHalfEdge(Vertex tail, Vertex head)
+        {
+            foreach (var face in faces)
+            {
+                HalfEdge he = face.findEdge(tail, head);
+                if (he != null)
+                {
+                    return he;
+                }
             }
 
-            ps.flush();
-            ps.close();
-            Vector indexList = new Vector(3);
-            stok.eolIsSignificant(true);
-            printQhullErrors(proc);
-            do
+            return null;
+        }
+
+        /// <summary>
+        /// ÉèÖÃÍ¹°ü
+        /// </summary>
+        /// <param name="coords"></param>
+        /// <param name="nump"></param>
+        /// <param name="faceIndices"></param>
+        /// <param name="numf"></param>
+        protected void SetHull(float[] coords, int nump, int[][] faceIndices, int numf)
+        {
+            InitBuffers(nump);
+            SetPoints(coords, nump);
+            ComputeMaxAndMin();
+            for (int i = 0; i < numf; i++)
             {
-                stok.nextToken();
-            } while (stok.sval == null ||
-                     !stok.sval.startsWith("MERGEexact"));
+                Face face = Face.Create(pointBuffer, faceIndices[i]);
+                HalfEdge he = face.he0;
+                do
+                {
+                    HalfEdge heOpp = FindHalfEdge(he.Head, he.Tail);
+                    if (heOpp != null)
+                    {
+                        he.Opposite = heOpp;
+                    }
+
+                    he = he.next;
+                } while (he != face.he0);
+
+                faces.Add(face);
+            }
+        }
+
+        /// <summary>
+        /// ¸ù¾İÊäÈëµÄfloat[]->×ª»»ÎªxyzµãÉú³ÉÍ¹°ü
+        /// </summary>
+        /// <param name="coords"></param>
+        public void Build(float[] coords)
+        {
+            Build(coords, coords.Length / 3);
+        }
+
+        /// <summary>
+        /// ¸ù¾İÊäÈëµÄfloat[]->×ª»»ÎªxyzµãÉú³ÉÍ¹°ü
+        /// </summary>
+        /// <param name="coords"></param>
+        /// <param name="nump"></param>
+        public void Build(float[] coords, int nump)
+
+        {
+            if (nump < 4)
+            {
+                throw new Exception("Less than four input points specified");
+            }
+
+            if (coords.Length / 3 < nump)
+            {
+                throw new Exception("Coordinate array too small for specified number of points");
+            }
+
+            InitBuffers(nump);
+            SetPoints(coords, nump);
+            BuildHull();
+        }
+
+
+        /// <summary>
+        /// ¸ù¾İÊäÈëµÄµãÉú³ÉÍ¹°ü
+        /// </summary>
+        /// <param name="points"></param>
+        public void Build(Vector3[] points)
+        {
+            Build(points, points.Length);
+        }
+
+
+        /// <summary>
+        /// ¸ù¾İÊäÈëµÄµãÉú³ÉÍ¹°ü
+        /// </summary>
+        /// <param name="points"></param>
+        /// <param name="nump"></param>
+        public void Build(Vector3[] points, int nump)
+        {
+            if (nump < 4)
+            {
+                throw new Exception("Less than four input points specified");
+            }
+
+            if (points.Length < nump)
+            {
+                throw new Exception("Point array too small for specified number of points");
+            }
+
+            InitBuffers(nump);
+            SetPoints(points, nump);
+            BuildHull();
+        }
+
+        /// <summary>
+        /// Èı½Ç»¯
+        /// </summary>
+        public void Triangulate()
+        {
+            float minArea = 1000 * charLength * c_FloatPrec;
+            newFaces.Clear();
+
+            foreach (var face in faces)
+            {
+                if (face.mark == Face.c_Visible)
+                {
+                    face.Triangulate(newFaces, minArea);
+                }
+            }
+
+            for (Face face = newFaces.First(); face != null; face = face.next)
+            {
+                faces.Add(face);
+            }
+        }
+
+        /// <summary>
+        /// ³õÊ¼»¯¿ÕÊı¾İ
+        /// </summary>
+        /// <param name="nump"></param>
+        protected void InitBuffers(int nump)
+        {
+            if (pointBuffer.Length < nump)
+            {
+                Vertex[] newBuffer = new Vertex[nump];
+                vertexPointIndices = new int[nump];
+                for (int i = 0; i < pointBuffer.Length; i++)
+                {
+                    newBuffer[i] = pointBuffer[i];
+                }
+
+                for (int i = pointBuffer.Length; i < nump; i++)
+                {
+                    newBuffer[i] = new Vertex();
+                }
+
+                pointBuffer = newBuffer;
+            }
+
+            faces.Clear();
+            claimed.Clear();
+            numFaces = 0;
+            numPoints = nump;
+        }
+
+        /// <summary>
+        /// °ÑµãÊı¾İÉèÖÃ½øÈ¥
+        /// </summary>
+        /// <param name="coords"></param>
+        /// <param name="nump"></param>
+        protected void SetPoints(float[] coords, int nump)
+        {
+            for (int i = 0; i < nump; i++)
+            {
+                Vertex vtx = pointBuffer[i];
+                vtx.pnt.x = coords[i * 3 + 0];
+                vtx.pnt.y = coords[i * 3 + 1];
+                vtx.pnt.z = coords[i * 3 + 2];
+                vtx.index = i;
+            }
+        }
+
+        /// <summary>
+        /// °ÑµãÉèÖÃ½øÈ¥
+        /// </summary>
+        /// <param name="pnts"></param>
+        /// <param name="nump"></param>
+        protected void SetPoints(Vector3[] pnts, int nump)
+        {
+            for (int i = 0; i < nump; i++)
+            {
+                Vertex vtx = pointBuffer[i];
+                vtx.pnt.x = pnts[i].x;
+                vtx.pnt.y = pnts[i].y;
+                vtx.pnt.z = pnts[i].z;
+                vtx.index = i;
+            }
+        }
+
+        /// <summary>
+        /// ¼ÆËãAABB×î´ó×îĞ¡Öµ µÃ³ö×î´óµÄ±ß
+        /// </summary>
+        protected void ComputeMaxAndMin()
+        {
+            Vector3 max = Vector3.zero;
+            Vector3 min = Vector3.zero;
+            for (int i = 0; i < 3; i++)
+            {
+                maxVtxs[i] = minVtxs[i] = pointBuffer[0];
+            }
+
+            max = (pointBuffer[0].pnt);
+            min = (pointBuffer[0].pnt);
+            for (int i = 1; i < numPoints; i++)
+            {
+                Vector3 pnt = pointBuffer[i].pnt;
+                if (pnt.x > max.x)
+                {
+                    max.x = pnt.x;
+                    maxVtxs[0] = pointBuffer[i];
+                }
+                else if (pnt.x < min.x)
+                {
+                    min.x = pnt.x;
+                    minVtxs[0] = pointBuffer[i];
+                }
+
+                if (pnt.y > max.y)
+                {
+                    max.y = pnt.y;
+                    maxVtxs[1] = pointBuffer[i];
+                }
+                else if (pnt.y < min.y)
+                {
+                    min.y = pnt.y;
+                    minVtxs[1] = pointBuffer[i];
+                }
+
+                if (pnt.z > max.z)
+                {
+                    max.z = pnt.z;
+                    maxVtxs[2] = pointBuffer[i];
+                }
+                else if (pnt.z < min.z)
+                {
+                    min.z = pnt.z;
+                    minVtxs[2] = pointBuffer[i];
+                }
+            }
+
+
+            charLength = Mathf.Max(max.x - min.x, max.y - min.y, max.z - min.z);
+            if (explicitTolerance == c_AutomaticTolerance)
+            {
+                tolerance =
+                    3 * c_FloatPrec * (Mathf.Max(Mathf.Abs(max.x), Mathf.Abs(min.x)) +
+                                       Mathf.Max(Mathf.Abs(max.y), Mathf.Abs(min.y)) +
+                                       Mathf.Max(Mathf.Abs(max.z), Mathf.Abs(min.z)));
+            }
+            else
+            {
+                tolerance = explicitTolerance;
+            }
+        }
+
+
+        /// <summary>
+        /// ¹¹½¨³õÊ¼µÄÍ¹¿Ç
+        /// </summary>
+        protected void CreateInitialSimplex()
+        {
+            //ÕÒ³ö×î´óµÄÖá
+            float max = 0;
+            int imax = 0;
+            for (int i = 0; i < 3; i++)
+            {
+                float diff = maxVtxs[i].pnt[i] - minVtxs[i].pnt[i];
+                if (diff > max)
+                {
+                    max = diff;
+                    imax = i;
+                }
+            }
+
+            if (max <= tolerance)
+            {
+                throw new Exception("Input points appear to be coincident");
+            }
+
+            Vertex[] vtx = new Vertex[4];
+
+            //°ÑÇ°ÃæÁ½¸ö¶¥µãÉèÖÃÎª×î´óÎ¬¶ÈµÄ¶¥µã
+            vtx[0] = maxVtxs[imax];
+            vtx[1] = minVtxs[imax];
+
+
+            //Èı¸ö¶¥µãµÄ¾àÀëÎªÖ±Ïß×îÔ¶µÄ¾àÀë
+            Vector3 u01 = new Vector3();
+            Vector3 diff02 = new Vector3();
+            Vector3 nrml = new Vector3();
+            Vector3 xprod = new Vector3();
+            float maxSqr = 0;
+            u01 = vtx[1].pnt + vtx[0].pnt;
+            u01.Normalize();
+            for (int i = 0; i < numPoints; i++)
+            {
+                diff02 = (pointBuffer[i].pnt + vtx[0].pnt);
+                xprod = Vector3.Cross(u01, diff02);
+                float lenSqr = xprod.sqrMagnitude;
+                // ¼ì²âÂ©µÄµã
+                if (lenSqr > maxSqr &&
+                    pointBuffer[i] != vtx[0] && pointBuffer[i] != vtx[1])
+                {
+                    maxSqr = lenSqr;
+                    vtx[2] = pointBuffer[i];
+                    nrml.x = xprod.x;
+                    nrml.y = xprod.y;
+                    nrml.z = xprod.z;
+                }
+            }
+
+            if (Mathf.Sqrt(maxSqr) <= 100 * tolerance)
+            {
+                throw new Exception("Input points appear to be colinear");
+            }
+
+            nrml.Normalize();
+
+            //ÖØĞÂ¼ÆËãnrmlÒÔÈ·±£Ëü¶ÔU01Õı³£,·ñÔòÔÚvtx[2]½Ó½üu01Ê±¿ÉÄÜ»á³ö´í
+            Vector3 res = new Vector3();
+            res = Vector3.Dot(nrml, u01) * u01; // ÑØu01µÄnrmlµÄÑÓ³¤
+            nrml += res;
+            nrml.Normalize();
+            float maxDist = 0;
+            float d0 = Vector3.Dot(vtx[2].pnt, nrml);
+            for (int i = 0; i < numPoints; i++)
+            {
+                float dist = Mathf.Abs(Vector3.Dot(pointBuffer[i].pnt, nrml) - d0);
+                // ¼ì²âÂ©µÄµã
+                if (dist > maxDist &&
+                    pointBuffer[i] != vtx[0] &&
+                    pointBuffer[i] != vtx[1] &&
+                    pointBuffer[i] != vtx[2])
+                {
+                    maxDist = dist;
+                    vtx[3] = pointBuffer[i];
+                }
+            }
+
+            if (Mathf.Abs(maxDist) <= 100 * tolerance)
+            {
+                throw new Exception("Input points appear to be coplanar");
+            }
+
+            if (IsDebug)
+            {
+                Debug.Log("initial vertices:");
+                Debug.Log(vtx[0].index + ": " + vtx[0].pnt);
+                Debug.Log(vtx[1].index + ": " + vtx[1].pnt);
+                Debug.Log(vtx[2].index + ": " + vtx[2].pnt);
+                Debug.Log(vtx[3].index + ": " + vtx[3].pnt);
+            }
+
+            Face[] tris = new Face[4];
+            if (Vector3.Dot(vtx[3].pnt,nrml) - d0 < 0)
+            {
+                tris[0] = Face.CreateTriangle(vtx[0], vtx[1], vtx[2]);
+                tris[1] = Face.CreateTriangle(vtx[3], vtx[1], vtx[0]);
+                tris[2] = Face.CreateTriangle(vtx[3], vtx[2], vtx[1]);
+                tris[3] = Face.CreateTriangle(vtx[3], vtx[0], vtx[2]);
+                for (int i = 0; i < 3; i++)
+                {
+                    int k = (i + 1) % 3;
+                    tris[i + 1].GetEdge(1).Opposite=tris[k + 1].GetEdge(0);
+                    tris[i + 1].GetEdge(2).Opposite=tris[0].GetEdge(k);
+                }
+            }
+            else
+            {
+                tris[0] = Face.CreateTriangle(vtx[0], vtx[2], vtx[1]);
+                tris[1] = Face.CreateTriangle(vtx[3], vtx[0], vtx[1]);
+                tris[2] = Face.CreateTriangle(vtx[3], vtx[1], vtx[2]);
+                tris[3] = Face.CreateTriangle(vtx[3], vtx[2], vtx[0]);
+                for (int i = 0; i < 3; i++)
+                {
+                    int k = (i + 1) % 3;
+                    tris[i + 1].GetEdge(0).Opposite=tris[k + 1].GetEdge(1);
+                    tris[i + 1].GetEdge(2).Opposite=tris[0].GetEdge((3 - i) % 3);
+                }
+            }
 
             for (int i = 0; i < 4; i++)
             {
-                stok.nextToken();
+                faces.Add(tris[i]);
             }
 
-            if (stok.ttype != StreamTokenizer.TT_NUMBER)
+            for (int i = 0; i < numPoints; i++)
             {
-                System.out.println("Expecting number of faces");
-                System.exit(1);
-            }
-
-            int numf = (int) stok.nval;
-            stok.nextToken(); // Clear EOL
-            int[][] faceIndices = new int[numf][];
-            for (int i = 0; i < numf; i++)
-            {
-                indexList.Clear();
-                while (stok.nextToken() != StreamTokenizer.TT_EOL)
+                Vertex v = pointBuffer[i];
+                if (v == vtx[0] || v == vtx[1] || v == vtx[2] || v == vtx[3])
                 {
-                    if (stok.ttype != StreamTokenizer.TT_NUMBER)
-                    {
-                        System.out.println("Expecting face index");
-                        System.exit(1);
-                    }
-
-                    indexList.Add(0, new Integer((int) stok.nval));
+                    continue;
                 }
 
-                faceIndices[i] = new int[indexList.size()];
-                int k = 0;
-                for (Iterator it = indexList.iterator(); it.hasNext();)
+                maxDist = tolerance;
+                Face maxFace = null;
+                for (int k = 0; k < 4; k++)
                 {
-                    faceIndices[i][k++] = ((Integer) it.next()).intValue();
-                }
-            }
-
-            SetHull(coords, nump, faceIndices, numf);
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-            System.exit(1);
-        }
-        */
-    }
-
-    /// <summary>
-    /// éå†è¾“å‡ºå…¨éƒ¨çš„ç‚¹çš„ä½ç½®
-    /// </summary>
-    private void PrintPoints()
-    {
-        string str = "";
-        for (int i = 0; i < numPoints; i++)
-        {
-            Vector3 pnt = pointBuffer[i].pnt;
-            str += i + ":" + pnt + "\n";
-        }
-
-        Debug.Log(str);
-    }
-
-    /// <summary>
-    /// æ ¹æ®è¾“å…¥çš„ç‚¹ è½¬æ¢æˆ vector3 æ•°ç»„ è®¡ç®—å‡¸åŒ…
-    /// </summary>
-    /// <param name="coords"></param>
-    public void Build(float[] coords)
-    {
-        Build(coords, coords.Length / 3);
-    }
-
-    /// <summary>
-    /// æ ¹æ®è¾“å…¥çš„æ•°æ®è½¬æ¢ä¸º vector3 numpä¸ªæ•°ç»„ è®¡ç®—å‡¸åŒ…
-    /// nump éœ€è¦>=4 è€Œä¸”ä¸åœ¨ä¸€ä¸ªå¹³é¢ä¸Š
-    /// </summary>
-    /// <param name="coords"></param>
-    /// <param name="nump"></param>
-    public void Build(float[] coords, int nump)
-    {
-        if (nump < 4)
-        {
-            throw new Exception(
-                "Less than four input points specified");
-        }
-
-        if (coords.Length / 3 < nump)
-        {
-            throw new Exception(
-                "Coordinate array too small for specified number of points");
-        }
-
-        InitBuffers(nump);
-        SetPoints(coords, nump);
-        BuildHull();
-    }
-
-    /// <summary>
-    /// é‡Œç”¨ä¸€å †Vector3è®¡ç®—å‡¸åŒ…
-    /// </summary>
-    /// <param name="points"></param>
-    public void Build(Vector3[] points)
-    {
-        Build(points, points.Length);
-    }
-
-    /// <summary>
-    /// æ ¹æ®é¡¶ç‚¹ å’Œ è¦çš„é•¿åº¦  ç”Ÿæˆå‡¸åŒ…
-    /// </summary>
-    /// <param name="points"></param>
-    /// <param name="nump"></param>
-    public void Build(Vector3[] points, int nump)
-    {
-        if (nump < 4)
-        {
-            throw new Exception(
-                "Less than four input points specified");
-        }
-
-        if (points.Length < nump)
-        {
-            throw new Exception(
-                "Point array too small for specified number of points");
-        }
-
-        InitBuffers(nump);
-        SetPoints(points, nump);
-        BuildHull();
-    }
-
-
-    /// <summary>
-    /// è®¡ç®—ä¸‰è§’èŠ±
-    /// </summary>
-    public void Triangulate()
-    {
-        float minArea = 1000 * charLength * c_floatPrec;
-        newFaces.Clear();
-
-        foreach (var face in faces)
-        {
-            if (face.Mark == Face.c_visible)
-            {
-                face.Triangulate(newFaces, minArea);
-            }
-        }
-
-        for (Face face = newFaces.First; face != null; face = face.next)
-        {
-            faces.Add(face);
-        }
-    }
-
-    /// <summary>
-    /// åˆå§‹åŒ–æ•°æ®
-    /// </summary>
-    /// <param name="nump"></param>
-    protected void InitBuffers(int nump)
-    {
-        if (pointBuffer.Length < nump)
-        {
-            Vertex[] newBuffer = new Vertex[nump];
-            vertexPointIndices = new int[nump];
-            for (int i = 0; i < pointBuffer.Length; i++)
-            {
-                newBuffer[i] = pointBuffer[i];
-            }
-
-            for (int i = pointBuffer.Length; i < nump; i++)
-            {
-                newBuffer[i] = new Vertex();
-            }
-
-            pointBuffer = newBuffer;
-        }
-
-        faces.Clear();
-        claimed.Clear();
-        numFaces = 0;
-        numPoints = nump;
-    }
-
-    /// <summary>
-    /// æ ¹æ®float[] è½¬æ¢æˆ Vector3 è®¾ç½®ç‚¹çš„æ•°æ®
-    /// </summary>
-    /// <param name="coords"></param>
-    /// <param name="nump"></param>
-    protected void SetPoints(float[] coords, int nump)
-    {
-        for (int i = 0; i < nump; i++)
-        {
-            Vertex vtx = pointBuffer[i];
-            vtx.pnt = new Vector3(coords[i * 3 + 0], coords[i * 3 + 1], coords[i * 3 + 2]);
-            vtx.index = i;
-        }
-    }
-
-    /// <summary>
-    /// ç›´æ¥ç”¨Vector3 è®¾ç½®ç‚¹çš„æ•°æ®
-    /// </summary>
-    /// <param name="pnts"></param>
-    /// <param name="nump"></param>
-    protected void SetPoints(Vector3[] pnts, int nump)
-    {
-        for (int i = 0; i < nump; i++)
-        {
-            Vertex vtx = pointBuffer[i];
-            vtx.pnt = pnts[i];
-            vtx.index = i;
-        }
-    }
-
-    /// <summary>
-    /// è®¡ç®—æœ€å¤§å’Œæœ€å°çš„ç‚¹  ç±»ä¼¼äºAABB , åŒæ—¶ä¹Ÿä¼šç”Ÿæˆé¢ç§¯
-    /// </summary>
-    protected void ComputeMaxAndMin()
-    {
-        Vector3 max = Vector3.zero;
-        Vector3 min = Vector3.zero;
-        for (int i = 0; i < 3; i++)
-        {
-            maxVtxs[i] = minVtxs[i] = pointBuffer[0];
-        }
-
-        max = pointBuffer[0].pnt;
-        min = pointBuffer[0].pnt;
-        for (int i = 1; i < numPoints; i++)
-        {
-            Vector3 pnt = pointBuffer[i].pnt;
-            if (pnt.x > max.x)
-            {
-                max.x = pnt.x;
-                maxVtxs[0] = pointBuffer[i];
-            }
-            else if (pnt.x < min.x)
-            {
-                min.x = pnt.x;
-                minVtxs[0] = pointBuffer[i];
-            }
-
-            if (pnt.y > max.y)
-            {
-                max.y = pnt.y;
-                maxVtxs[1] = pointBuffer[i];
-            }
-            else if (pnt.y < min.y)
-            {
-                min.y = pnt.y;
-                minVtxs[1] = pointBuffer[i];
-            }
-
-            if (pnt.z > max.z)
-            {
-                max.z = pnt.z;
-                maxVtxs[2] = pointBuffer[i];
-            }
-            else if (pnt.z < min.z)
-            {
-                min.z = pnt.z;
-                minVtxs[2] = pointBuffer[i];
-            }
-        }
-
-
-        charLength = Mathf.Max(max.x - min.x, max.y - min.y, max.z - min.z);
-        if (explicitTolerance == c_automaticTolerance)
-        {
-            tolerance = 3 * c_floatPrec * (Mathf.Max(Mathf.Abs(max.x), Mathf.Abs(min.x)) +
-                                           Mathf.Max(Mathf.Abs(max.y), Mathf.Abs(min.y)) +
-                                           Mathf.Max(Mathf.Abs(max.z), Mathf.Abs(min.z)));
-        }
-        else
-        {
-            tolerance = explicitTolerance;
-        }
-    }
-
-
-    /// <summary>
-    /// æ„å»ºåˆå§‹çš„å‡¸å£³
-    /// </summary>
-    protected void CreateInitialSimplex()
-    {
-        //æ‰¾å‡ºæœ€å¤§çš„è½´
-        float max = 0;
-        int imax = 0;
-        for (int i = 0; i < 3; i++)
-        {
-            float diff = maxVtxs[i].pnt[i] - minVtxs[i].pnt[i];
-            if (diff > max)
-            {
-                max = diff;
-                imax = i;
-            }
-        }
-
-        if (max <= tolerance)
-        {
-            throw new Exception("Input points appear to be coincident");
-        }
-
-        Vertex[] vtx = new Vertex[4];
-
-        //æŠŠå‰ä¸¤ä¸ªé¡¶ç‚¹è®¾ç½®æœ€å¤§ç»´åº¦çš„é¡¶ç‚¹
-        vtx[0] = maxVtxs[imax];
-        vtx[1] = minVtxs[imax];
-
-
-        //ä¸‰ä¸ªé¡¶ç‚¹çš„è·ç¦»ä¸º ç›´çº¿æœ€è¿œçš„è·ç¦»
-        Vector3 u01 = Vector3.zero;
-        Vector3 diff02 = Vector3.zero;
-        Vector3 nrml = Vector3.zero;
-        Vector3 xprod = Vector3.zero;
-        float maxSqr = 0;
-        u01 = (vtx[1].pnt - vtx[0].pnt).normalized;
-        for (int i = 0; i < numPoints; i++)
-        {
-            diff02 = pointBuffer[i].pnt - vtx[0].pnt;
-            xprod = Vector3.Cross(u01, diff02);
-            float lenSqr = xprod.sqrMagnitude;
-            if (lenSqr > maxSqr &&
-                pointBuffer[i] != vtx[0] && // paranoid
-                pointBuffer[i] != vtx[1])
-            {
-                maxSqr = lenSqr;
-                vtx[2] = pointBuffer[i];
-                nrml = xprod;
-            }
-        }
-
-        if (Mathf.Sqrt(maxSqr) <= 100 * tolerance)
-        {
-            throw new Exception(
-                "Input points appear to be colinear");
-        }
-
-        nrml.Normalize();
-
-
-        //é‡æ–°è®¡ç®—nrmlä»¥ç¡®ä¿å®ƒå¯¹U01æ­£å¸¸,å¦åˆ™åœ¨vtx[2]æ¥è¿‘u01æ—¶å¯èƒ½ä¼šå‡ºé”™
-        Vector3 res = Vector3.zero;
-        res = Vector3.Dot(nrml, u01) * u01; // æ²¿u01çš„nrmlçš„å»¶é•¿
-        nrml += (res);
-        nrml.Normalize();
-        float maxDist = 0;
-        float d0 = Vector3.Dot(vtx[2].pnt, nrml);
-        for (int i = 0; i < numPoints; i++)
-        {
-            float dist = Mathf.Abs(Vector3.Dot(pointBuffer[i].pnt, nrml) - d0);
-            if (dist > maxDist &&
-                pointBuffer[i] != vtx[0] && // paranoid
-                pointBuffer[i] != vtx[1] &&
-                pointBuffer[i] != vtx[2])
-            {
-                maxDist = dist;
-                vtx[3] = pointBuffer[i];
-            }
-        }
-
-        if (Mathf.Abs(maxDist) <= 100 * tolerance)
-        {
-            throw new Exception(
-                "Input points appear to be coplanar");
-        }
-
-        if (IsDebug)
-        {
-            string str = "initial vertices:"
-                         + $"{vtx[0].index} : {vtx[0].pnt} \n"
-                         + $"{vtx[1].index} : {vtx[1].pnt} \n"
-                         + $"{vtx[2].index} : {vtx[2].pnt} \n"
-                         + $"{vtx[3].index} : {vtx[3].pnt} \n";
-            Debug.Log(str);
-        }
-
-        Face[] tris = new Face[4];
-        //æ–¹å‘é•¿åº¦åˆ¤æ–­ æ¥ç”Ÿæˆé¢
-        if (Vector3.Dot(vtx[3].pnt, nrml) - d0 < 0)
-        {
-            tris[0] = Face.CreateTriangle(vtx[0], vtx[1], vtx[2]);
-            tris[1] = Face.CreateTriangle(vtx[3], vtx[1], vtx[0]);
-            tris[2] = Face.CreateTriangle(vtx[3], vtx[2], vtx[1]);
-            tris[3] = Face.CreateTriangle(vtx[3], vtx[0], vtx[2]);
-            for (int i = 0; i < 3; i++)
-            {
-                int k = (i + 1) % 3;
-                tris[i + 1].GetEdge(1).Opposite = (tris[k + 1].GetEdge(0));
-                tris[i + 1].GetEdge(2).Opposite = (tris[0].GetEdge(k));
-            }
-        }
-        else
-        {
-            tris[0] = Face.CreateTriangle(vtx[0], vtx[2], vtx[1]);
-            tris[1] = Face.CreateTriangle(vtx[3], vtx[0], vtx[1]);
-            tris[2] = Face.CreateTriangle(vtx[3], vtx[1], vtx[2]);
-            tris[3] = Face.CreateTriangle(vtx[3], vtx[2], vtx[0]);
-            for (int i = 0; i < 3; i++)
-            {
-                int k = (i + 1) % 3;
-                tris[i + 1].GetEdge(0).Opposite = (tris[k + 1].GetEdge(1));
-                tris[i + 1].GetEdge(2).Opposite = (tris[0].GetEdge((3 - i) % 3));
-            }
-        }
-
-        for (int i = 0; i < 4; i++)
-        {
-            faces.Add(tris[i]);
-        }
-
-        for (int i = 0; i < numPoints; i++)
-        {
-            Vertex v = pointBuffer[i];
-            if (v == vtx[0] || v == vtx[1] || v == vtx[2] || v == vtx[3])
-            {
-                continue;
-            }
-
-            maxDist = tolerance;
-            Face maxFace = null;
-            for (int k = 0; k < 4; k++)
-            {
-                float dist = tris[k].DistanceToPlane(v.pnt);
-                if (dist > maxDist)
-                {
-                    maxFace = tris[k];
-                    maxDist = dist;
-                }
-            }
-
-            if (maxFace != null)
-            {
-                AddPointToFace(v, maxFace);
-            }
-        }
-    }
-
-    /// <summary>
-    /// å¾—åˆ°é¡¶ç‚¹çš„æ•°é‡
-    /// </summary>
-    /// <returns></returns>
-    public int NumVertices => numVertices;
-
-    /// <summary>
-    /// å¾—åˆ°é¡¶ç‚¹
-    /// </summary>
-    public Vector3[] GetVertices()
-    {
-        Vector3[] vtxs = new Vector3[numVertices];
-        for (int i = 0; i < numVertices; i++)
-        {
-            vtxs[i] = pointBuffer[vertexPointIndices[i]].pnt;
-        }
-
-        return vtxs;
-    }
-
-
-    /// <summary>
-    /// å¾—åˆ° x y z ç»„æˆçš„é¡¶ç‚¹,å¹¶ä¸”è¿”å›é¡¶ç‚¹é•¿åº¦
-    /// </summary>
-    /// <param name="coords"></param>
-    /// <returns></returns>
-    public int GetVertices(float[] coords)
-    {
-        coords = new float[numVertices * 3];
-        for (int i = 0; i < numVertices; i++)
-        {
-            Vector3 pnt = pointBuffer[vertexPointIndices[i]].pnt;
-            coords[i * 3 + 0] = pnt.x;
-            coords[i * 3 + 1] = pnt.y;
-            coords[i * 3 + 2] = pnt.z;
-        }
-
-        return numVertices;
-    }
-
-    /// <summary>
-    /// å¾—åˆ°é¡¶ç‚¹ç´¢å¼•æ•°ç»„
-    /// </summary>
-    /// <returns></returns>
-    public int[] GetVertexPointIndices()
-    {
-        int[] indices = new int[numVertices];
-        for (int i = 0; i < numVertices; i++)
-        {
-            indices[i] = vertexPointIndices[i];
-        }
-
-        return indices;
-    }
-
-
-    /// <summary>
-    /// é¢ç‰‡çš„æ•°é‡
-    /// </summary>
-    /// <returns></returns>
-    public int NumFaces() => faces.Count;
-
-
-    /// <summary>
-    /// è¿”å›ä¸æ­¤å¤–å£³ç›¸å…‰è”çš„é¢
-    /// æ¯ä¸€ä¸ªé¢éƒ½æœ‰ä¸€ä¸ªæ•´æ•°æ•°ç»„è¡¨ç¤º,è¯¥æ•°ç»„ç»™å‡ºé¡¶ç‚¹çš„ç´¢å¼•
-    /// è¿™äº›ç´¢å¼•éƒ½æ˜¯ç¼–å· ç›¸å¯¹äºé¡¶ç‚¹,åŸºäº0,é€†æ—¶é’ˆæ’åˆ—
-    /// æ›´å¤šæ§åˆ¶åœ¨ç´¢å¼•æ ¼å¼ä¸Š å¯ä»¥ä½¿ç”¨ GetFaces(int) å’Œ GetFaces(indexflags)
-    ///
-    /// è¿”å›æ•´æ•°æ•°ç»„çš„æ•°ç»„ ç»™å‡ºçš„é¡¶ç‚¹æ¯ä¸ªé¢çš„ç´¢å¼•
-    /// </summary>
-    /// <returns></returns>
-    public int[][] GetFaces()
-    {
-        return GetFaces(0);
-    }
-
-    /// <summary>
-    /// ç”¨indexFlagsç‰¹å®šç´¢å¼•ç‰¹å¾å¾—åˆ°Faces
-    /// </summary>
-    /// <param name="indexFlags"></param>
-    /// <returns></returns>
-    public int[][] GetFaces(int indexFlags)
-    {
-        int[][] allFaces = new int[faces.Count][];
-        int k = 0;
-        for (int i = 0; i < faces.Count; i++)
-        {
-            Face face = faces[i];
-            allFaces[k] = new int[face.NumVertices];
-            GetFaceIndices(allFaces[k], face, indexFlags);
-            k++;
-        }
-        return allFaces;
-    }
-
-
-    /// <summary>
-    /// è¾“å‡ºé¡¶ç‚¹å’Œé¢ç‰‡
-    /// </summary>
-    public void Print()
-    {
-        Print(0);
-    }
-
-
-    /// <summary>
-    /// æ ¹æ®indexFlagsè§„åˆ™è¾“å‡ºé¡¶ç‚¹
-    /// </summary>
-    /// <param name="indexFlags"></param>
-    public void Print(int indexFlags)
-    {
-        if ((indexFlags & c_indexFromZero) == 0)
-        {
-            indexFlags |= c_indexFromOne;
-        }
-
-        for (int i = 0; i < numVertices; i++)
-        {
-            Vector3 pnt = pointBuffer[vertexPointIndices[i]].pnt;
-            Debug.Log($"v:({pnt.x} , {pnt.y} , {pnt.z})");
-        }
-
-        string str = "";
-
-        foreach (var face in faces)
-        {
-            int[] indices = new int[face.NumVertices];
-            GetFaceIndices(indices, face, indexFlags);
-            str += "f:";
-            for (int k = 0; k < indices.Length; k++)
-            {
-                str += " " + indices[k];
-            }
-
-            str += "\n";
-        }
-
-        Debug.Log(str);
-    }
-
-    /// <summary>
-    /// å¾—åˆ°é¢ç‰‡çš„ç´¢å¼•
-    /// </summary>
-    /// <param name="indices"></param>
-    /// <param name="face"></param>
-    /// <param name="flags"></param>
-    private void GetFaceIndices(int[] indices, Face face, int flags)
-    {
-        bool ccw = ((flags & c_clockwise) == 0);
-        bool indexedFromOne = ((flags & c_indexFromOne) != 0);
-        bool pointRelative = ((flags & c_pointRelative) != 0);
-        HalfEdge hedge = face.HE0;
-        int k = 0;
-        do
-        {
-            int idx = hedge.Head.index;
-            if (pointRelative)
-            {
-                idx = vertexPointIndices[idx];
-            }
-
-            if (indexedFromOne)
-            {
-                idx++;
-            }
-
-            indices[k++] = idx;
-            hedge = (ccw ? hedge.Next : hedge.Prev);
-        } while (hedge != face.HE0);
-    }
-
-    /// <summary>
-    /// å¤„ç†æ²¡æœ‰è§£å†³(å­¤å„¿)çš„ç‚¹
-    /// </summary>
-    /// <param name="newFaces"></param>
-    protected void ResolveUnclaimedPoints(FaceList newFaces)
-    {
-        Vertex vtxNext = unclaimed.First;
-        for (Vertex vtx = vtxNext; vtx != null; vtx = vtxNext)
-        {
-            vtxNext = vtx.next;
-            float maxDist = tolerance;
-            Face maxFace = null;
-            for (Face newFace = newFaces.First; newFace != null; newFace = newFace.next)
-            {
-                if (newFace.Mark == Face.c_visible)
-                {
-                    float dist = newFace.DistanceToPlane(vtx.pnt);
+                    float dist = tris[k].DistanceToPlane(v.pnt);
                     if (dist > maxDist)
                     {
+                        maxFace = tris[k];
                         maxDist = dist;
-                        maxFace = newFace;
-                    }
-
-                    if (maxDist > 1000 * tolerance)
-                    {
-                        break;
                     }
                 }
-            }
 
-            if (maxFace != null)
-            {
-                AddPointToFace(vtx, maxFace);
-                if (IsDebug && vtx.index == findIndex)
+                if (maxFace != null)
                 {
-                    Debug.Log(findIndex + " CLAIMED BY " + maxFace.GetVertexString());
-                }
-            }
-            else
-            {
-                if (IsDebug && vtx.index == findIndex)
-                {
-                    Debug.Log(findIndex + " DISCARDED");
+                    AddPointToFace(v, maxFace);
                 }
             }
         }
-    }
 
-    /// <summary>
-    /// åˆ é™¤faceä¸Šçš„ç‚¹
-    /// </summary>
-    /// <param name="face"></param>
-    /// <param name="absorbingFace"></param>
-    protected void DeleteFacePoints(Face face, Face absorbingFace)
-    {
-        Vertex faceVtxs = RemoveAllPointsFromFace(face);
-        if (faceVtxs != null)
+
+        /// <summary>
+        /// µÃµ½¶¥µãµÄÊıÁ¿
+        /// </summary>
+        public int NumVertices => numVertices;
+
+
+        /// <summary>
+        /// µÃµ½¶¥µã
+        /// </summary>
+        /// <returns></returns>
+        public Vector3[] GetVertices()
         {
-            if (absorbingFace == null)
+            Vector3[] vtxs = new Vector3[numVertices];
+            for (int i = 0; i < numVertices; i++)
             {
-                unclaimed.AddAll(faceVtxs);
+                vtxs[i] = pointBuffer[vertexPointIndices[i]].pnt;
             }
-            else
+
+            return vtxs;
+        }
+
+        /// <summary>
+        /// µÃµ½ x y z ×é³ÉµÄ¶¥µã,²¢ÇÒ·µ»Ø¶¥µã³¤¶È
+        /// </summary>
+        /// <param name="coords"></param>
+        /// <returns></returns>
+        public int GetVertices(float[] coords)
+        {
+            for (int i = 0; i < numVertices; i++)
             {
-                Vertex vtxNext = faceVtxs;
-                for (Vertex vtx = vtxNext; vtx != null; vtx = vtxNext)
+                Vector3 pnt = pointBuffer[vertexPointIndices[i]].pnt;
+                coords[i * 3 + 0] = pnt.x;
+                coords[i * 3 + 1] = pnt.y;
+                coords[i * 3 + 2] = pnt.z;
+            }
+
+            return numVertices;
+        }
+
+
+        /// <summary>
+        /// µÃµ½¶¥µãË÷ÒıÊı×é
+        /// </summary>
+        /// <returns></returns>
+        public int[] GetVertexPointIndices()
+        {
+            int[] indices = new int[numVertices];
+            for (int i = 0; i < numVertices; i++)
+            {
+                indices[i] = vertexPointIndices[i];
+            }
+
+            return indices;
+        }
+
+        /// <summary>
+        /// ÃæÆ¬µÄÊıÁ¿
+        /// </summary>
+        /// <returns></returns>
+        public int NumFaces => faces.Count;
+
+        /// <summary>
+        /// ·µ»ØÓë´ËÍâ¿ÇÏà¹âÁªµÄÃæ
+        /// Ã¿Ò»¸öÃæ¶¼ÓĞÒ»¸öÕûÊıÊı×é±íÊ¾,¸ÃÊı×é¸ø³ö¶¥µãµÄË÷Òı
+        /// ÕâĞ©Ë÷Òı¶¼ÊÇ±àºÅ Ïà¶ÔÓÚ¶¥µã,»ùÓÚ0,ÄæÊ±ÕëÅÅÁĞ
+        /// ¸ü¶à¿ØÖÆÔÚË÷Òı¸ñÊ½ÉÏ ¿ÉÒÔÊ¹ÓÃ GetFaces(int) ºÍ GetFaces(indexflags)
+        ///
+        /// ·µ»ØÕûÊıÊı×éµÄÊı×é ¸ø³öµÄ¶¥µãÃ¿¸öÃæµÄË÷Òı
+        /// </summary>
+        /// <returns></returns>
+        public int[][] GetFaces()
+        {
+            return GetFaces(0);
+        }
+
+        /// <summary>
+        /// ÓÃindexFlags Ë³ÄæÊ±Õë µÃµ½Faces
+        /// </summary>
+        /// <param name="indexFlags"></param>
+        /// <returns></returns>
+        public int[][] GetFaces(int indexFlags)
+        {
+            int[][] allFaces = new int[faces.Count][];
+            int k = 0;
+            foreach (var face in faces)
+            {
+                allFaces[k] = new int[face.NumVertices];
+                GetFaceIndices(allFaces[k], face, indexFlags);
+                k++;
+            }
+
+            return allFaces;
+        }
+
+        /// <summary>
+        /// µÃµ½ÃæÆ¬µÄË÷Òı
+        /// </summary>
+        /// <param name="indices"></param>
+        /// <param name="face"></param>
+        /// <param name="flags"></param>
+        private void GetFaceIndices(int[] indices, Face face, int flags)
+        {
+            bool ccw = ((flags & c_ClockWise) == 0);
+            bool indexedFromOne = ((flags & c_IndexFromOne) != 0);
+            bool pointRelative = ((flags & c_PointRelative) != 0);
+            HalfEdge hedge = face.he0;
+            int k = 0;
+            do
+            {
+                int idx = hedge.Head.index;
+                if (pointRelative)
                 {
-                    vtxNext = vtx.next;
-                    float dist = absorbingFace.DistanceToPlane(vtx.pnt);
-                    if (dist > tolerance)
+                    idx = vertexPointIndices[idx];
+                }
+
+                if (indexedFromOne)
+                {
+                    idx++;
+                }
+
+                indices[k++] = idx;
+                hedge = (ccw ? hedge.next : hedge.prev);
+            } while (hedge != face.he0);
+        }
+
+        /// <summary>
+        /// ´¦ÀíÃ»ÓĞ½â¾ö(¹Â¶ù)µÄµã
+        /// </summary>
+        /// <param name="newFaces"></param>
+        protected void ResolveUnclaimedPoints(FaceList newFaces)
+        {
+            Vertex vtxNext = unclaimed.First;
+            for (Vertex vtx = vtxNext; vtx != null; vtx = vtxNext)
+            {
+                vtxNext = vtx.next;
+                float maxDist = tolerance;
+                Face maxFace = null;
+                for (Face newFace = newFaces.First();
+                    newFace != null;
+                    newFace = newFace.next)
+                {
+                    if (newFace.mark == Face.c_Visible)
                     {
-                        AddPointToFace(vtx, absorbingFace);
+                        float dist = newFace.DistanceToPlane(vtx.pnt);
+                        if (dist > maxDist)
+                        {
+                            maxDist = dist;
+                            maxFace = newFace;
+                        }
+
+                        if (maxDist > 1000 * tolerance)
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                if (maxFace != null)
+                {
+                    AddPointToFace(vtx, maxFace);
+                    if (IsDebug && vtx.index == findIndex)
+                    {
+                        Debug.Log(findIndex + " CLAIMED BY " +
+                                  maxFace.GetVertexString());
+                    }
+                }
+                else
+                {
+                    if (IsDebug && vtx.index == findIndex)
+                    {
+                        Debug.Log(findIndex + " DISCARDED");
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// É¾³ıfaceÉÏ°üº¬faceµÄµã
+        /// </summary>
+        /// <param name="face"></param>
+        /// <param name="absorbingFace"></param>
+        protected void DeleteFacePoints(Face face, Face absorbingFace)
+        {
+            Vertex faceVtxs = RemoveAllPointsFromFace(face);
+            if (faceVtxs != null)
+            {
+                if (absorbingFace == null)
+                {
+                    unclaimed.AddRange(faceVtxs);
+                }
+                else
+                {
+                    Vertex vtxNext = faceVtxs;
+                    for (Vertex vtx = vtxNext; vtx != null; vtx = vtxNext)
+                    {
+                        vtxNext = vtx.next;
+                        float dist = absorbingFace.DistanceToPlane(vtx.pnt);
+                        if (dist > tolerance)
+                        {
+                            AddPointToFace(vtx, absorbingFace);
+                        }
+                        else
+                        {
+                            unclaimed.Add(vtx);
+                        }
+                    }
+                }
+            }
+        }
+
+        private const int c_NoneconvexWrtLargerFace = 1;
+        private const int c_NoneConvex = 2;
+
+        /// <summary>
+        /// µ½¶Ô±ßµÄ¾àÀë
+        /// </summary>
+        /// <param name="he"></param>
+        /// <returns></returns>
+        protected float OppFaceDistance(HalfEdge he)
+        {
+            return he.face.DistanceToPlane(he.opposite.face.Centroid);
+        }
+
+        /// <summary>
+        /// ºÏ²¢ÏàÁÚµÄÃæÆ¬
+        /// </summary>
+        /// <param name="face"></param>
+        /// <param name="mergeType"></param>
+        /// <returns></returns>
+        private bool DoAdjacentMerge(Face face, int mergeType)
+        {
+            HalfEdge hedge = face.he0;
+            bool convex = true;
+            do
+            {
+                Face oppFace = hedge.OppositeFace;
+                bool merge = false;
+                float dist1, dist2;
+                if (mergeType == c_NoneConvex)
+                {
+                    //Èç¹ûÊÇ·ÇÍ¹ÆğµÄÃæ,Ôò½øĞĞºÏ²¢
+                    if (OppFaceDistance(hedge) > -tolerance ||
+                        OppFaceDistance(hedge.opposite) > -tolerance)
+                    {
+                        merge = true;
+                    }
+                }
+                else // mergeType == c_noneConvexWrtLargerFace
+                {
+                    //Èç¹ûÃæÓë½Ï´óµÄÃæÆ½ĞĞ»ò·ÇÍ¹Ãæ,ÔòºÏ²¢Ãæ
+                    //·ñÔòÖ»Ğè½«Ãæ±ê¼ÇÎª·ÇÍ¹Ãæ,ÔÚµÚ¶ş±é½øĞĞ´¦Àí
+                    if (face.area > oppFace.area)
+                    {
+                        if ((dist1 = OppFaceDistance(hedge)) > -tolerance)
+                        {
+                            merge = true;
+                        }
+                        else if (OppFaceDistance(hedge.opposite) > -tolerance)
+                        {
+                            convex = false;
+                        }
                     }
                     else
                     {
-                        unclaimed.Add(vtx);
+                        if (OppFaceDistance(hedge.opposite) > -tolerance)
+                        {
+                            merge = true;
+                        }
+                        else if (OppFaceDistance(hedge) > -tolerance)
+                        {
+                            convex = false;
+                        }
                     }
                 }
-            }
-        }
-    }
 
-    /// <summary>
-    /// è¾ƒå¤§çš„éå‡¸èµ·é¢
-    /// </summary>
-    private const int c_noneConvexWrtLargerFace = 1;
-
-    /// <summary>
-    /// éå‡¸èµ·é¢,ç¬¬äºŒæ¬¡åˆ¤æ–­ç”¨
-    /// </summary>
-    private const int c_noneConvex = 2;
-
-    /// <summary>
-    /// åˆ°å¯¹è¾¹çš„è·ç¦»
-    /// </summary>
-    /// <param name="he"></param>
-    /// <returns></returns>
-    protected float OppFaceDistance(HalfEdge he)
-    {
-        return he.Face.DistanceToPlane(he.Opposite.Face.Centroid);
-    }
-
-    /// <summary>
-    /// åˆå¹¶ç›¸é‚»çš„é¢ç‰‡
-    /// </summary>
-    /// <param name="face"></param>
-    /// <param name="mergeType"></param>
-    /// <returns></returns>
-    private bool DoAdjacentMerge(Face face, int mergeType)
-    {
-        HalfEdge hedge = face.HE0;
-        bool convex = true;
-        do
-        {
-            Face oppFace = hedge.OppositeFace;
-            bool merge = false;
-            float dist1, dist2;
-            if (mergeType == c_noneConvex)
-            {
-                //å¦‚æœæ˜¯éå‡¸èµ·çš„é¢,åˆ™è¿›è¡Œåˆå¹¶
-                if (OppFaceDistance(hedge) > -tolerance || OppFaceDistance(hedge.Opposite) > -tolerance)
+                if (merge)
                 {
-                    merge = true;
-                }
-            }
-            else // mergeType == c_noneConvexWrtLargerFace
-            {
-                //å¦‚æœé¢ä¸è¾ƒå¤§çš„é¢å¹³è¡Œæˆ–éå‡¸é¢,åˆ™åˆå¹¶é¢
-                //å¦åˆ™åªéœ€å°†é¢æ ‡è®°ä¸ºéå‡¸é¢,åœ¨ç¬¬äºŒéè¿›è¡Œå¤„ç†
-                if (face.Area > oppFace.Area)
-                {
-                    if ((dist1 = OppFaceDistance(hedge)) > -tolerance)
-                    {
-                        merge = true;
-                    }
-                    else if (OppFaceDistance(hedge.Opposite) > -tolerance)
-                    {
-                        convex = false;
-                    }
-                }
-                else
-                {
-                    if (OppFaceDistance(hedge.Opposite) > -tolerance)
-                    {
-                        merge = true;
-                    }
-                    else if (OppFaceDistance(hedge) > -tolerance)
-                    {
-                        convex = false;
-                    }
-                }
-            }
-
-            if (merge)
-            {
-                if (IsDebug)
-                {
-                    Debug.Log("  merging " + face.GetVertexString() + "  and  " + oppFace.GetVertexString());
-                }
-
-                int numd = face.MergeAdjacentFace(hedge, discardedFaces);
-                for (int i = 0; i < numd; i++)
-                {
-                    DeleteFacePoints(discardedFaces[i], face);
-                }
-
-                if (IsDebug)
-                {
-                    Debug.Log("  result: " + face.GetVertexString());
-                }
-
-                return true;
-            }
-
-            hedge = hedge.Next;
-        } while (hedge != face.HE0);
-
-        if (!convex)
-        {
-            face.Mark = Face.c_noneConvex;
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// è®¡ç®—åœ°å¹³çº¿
-    /// </summary>
-    /// <param name="eyePnt"></param>
-    /// <param name="edge0"></param>
-    /// <param name="face"></param>
-    /// <param name="horizon"></param>
-    protected void CalculateHorizon(Vector3 eyePnt, HalfEdge edge0, Face face, List<HalfEdge> horizon)
-    {
-        DeleteFacePoints(face, null);
-        face.Mark = Face.c_deleted;
-        if (IsDebug)
-        {
-            Debug.Log("  visiting edge0 " + (edge0==null ? "null" : edge0.GetVertexString()));
-            Debug.Log("  visiting face " + face.GetVertexString());
-        }
-
-        HalfEdge edge;
-        if (edge0 == null)
-        {
-            edge0 = face.GetEdge(0);
-            edge = edge0;
-        }
-        else
-        {
-            edge = edge0.Next;
-        }
-
-        if (IsDebug)
-        {
-            Debug.Log("    edge: " + (edge0 == null ? "null" : edge0.GetVertexString()));
-        }
-
-        do
-        {
-            Face oppFace = edge.OppositeFace;
-            if (oppFace.Mark == Face.c_visible)
-            {
-                if (oppFace.DistanceToPlane(eyePnt) > tolerance)
-                {
-                    CalculateHorizon(eyePnt, edge.Opposite, oppFace, horizon);
-                }
-                else
-                {
-                    horizon.Add(edge);
                     if (IsDebug)
                     {
-                        Debug.Log("  adding horizon edge " + edge.GetVertexString());
+                        Debug.Log("  merging " + face.GetVertexString() + "  and  " +
+                                  oppFace.GetVertexString());
                     }
+
+                    int numd = face.MergeAdjacentFace(hedge, discardedFaces);
+                    for (int i = 0; i < numd; i++)
+                    {
+                        DeleteFacePoints(discardedFaces[i], face);
+                    }
+
+                    if (IsDebug)
+                    {
+                        Debug.Log("  result: " + face.GetVertexString());
+                    }
+
+                    return true;
                 }
-            }
 
-            edge = edge.Next;
-        } while (edge != edge0);
-    }
+                hedge = hedge.next;
+            } while (hedge != face.he0);
 
-    /// <summary>
-    /// æ·»åŠ ç›¸é‚»çš„é¢
-    /// </summary>
-    /// <param name="eyeVtx"></param>
-    /// <param name="he"></param>
-    /// <returns></returns>
-    private HalfEdge AddAdjoiningFace(Vertex eyeVtx, HalfEdge he)
-    {
-        Face face = Face.CreateTriangle(eyeVtx, he.Tail, he.Head);
-        faces.Add(face);
-        face.GetEdge(-1).Opposite = he.Opposite;
-        return face.GetEdge(0);
-    }
-
-    /// <summary>
-    /// æ·»åŠ æ–°çš„é¢
-    /// </summary>
-    /// <param name="newFaces"></param>
-    /// <param name="eyeVtx"></param>
-    /// <param name="horizon"></param>
-    protected void AddNewFaces(FaceList newFaces, Vertex eyeVtx, List<HalfEdge> horizon)
-    {
-        newFaces.Clear();
-        HalfEdge hedgeSidePrev = null;
-        HalfEdge hedgeSideBegin = null;
-
-        foreach (var horizonHe in horizon)
-        {
-            HalfEdge hedgeSide = AddAdjoiningFace(eyeVtx, horizonHe);
-            if (IsDebug)
+            if (!convex)
             {
-                Debug.Log("new face: " + hedgeSide.Face.GetVertexString());
+                face.mark = Face.c_NoneConvex;
             }
 
-            if (hedgeSidePrev != null)
-            {
-                hedgeSide.Next.Opposite = hedgeSidePrev;
-            }
-            else
-            {
-                hedgeSideBegin = hedgeSide;
-            }
-
-            newFaces.Add(hedgeSide.Face);
-            hedgeSidePrev = hedgeSide;
-        }
-
-        hedgeSideBegin.Next.Opposite = hedgeSidePrev;
-    }
-
-    /// <summary>
-    /// æ·»åŠ ä¸‹ä¸ªç‚¹
-    /// </summary>
-    /// <returns></returns>
-    protected Vertex NextPointToAdd()
-    {
-        if (!claimed.IsEmpty())
-        {
-            Face eyeFace = claimed.First.face;
-            Vertex eyeVtx = null;
-            float maxDist = 0;
-            for (Vertex vtx = eyeFace.outside; vtx != null && vtx.face == eyeFace; vtx = vtx.next)
-            {
-                float dist = eyeFace.DistanceToPlane(vtx.pnt);
-                if (dist > maxDist)
-                {
-                    maxDist = dist;
-                    eyeVtx = vtx;
-                }
-            }
-
-            return eyeVtx;
-        }
-
-        return null;
-    }
-
-    /// <summary>
-    /// æ·»åŠ ç‚¹åˆ°å‡¸å£³é‡Œé¢
-    /// </summary>
-    /// <param name="eyeVtx"></param>
-    protected void AddPointToHull(Vertex eyeVtx)
-    {
-        horizon.Clear();
-        unclaimed.Clear();
-        if (IsDebug)
-        {
-            Debug.Log("Adding point: " + eyeVtx.index + "\n" +
-                      " which is " + eyeVtx.face.DistanceToPlane(eyeVtx.pnt) +
-                      " above face " + eyeVtx.face.GetVertexString());
-        }
-
-        RemovePointFromFace(eyeVtx, eyeVtx.face);
-        CalculateHorizon(eyeVtx.pnt, null, eyeVtx.face, horizon);
-        newFaces.Clear();
-        AddNewFaces(newFaces, eyeVtx, horizon);
-
-        //ç¬¬ä¸€ä¸ªåˆå¹¶è¿‡ç¨‹  åˆå¹¶è¾ƒå¤§çš„éå‡¸èµ·çš„é¢
-        for (Face face = newFaces.First; face != null; face = face.next)
-        {
-            if (face.Mark == Face.c_visible)
-            {
-                while (DoAdjacentMerge(face, c_noneConvexWrtLargerFace)) ;
-            }
-        }
-
-
-        //ç¬¬äºŒä¸ªåˆå¹¶è¿‡ç¨‹ åˆå¹¶éå‡¸é¢çš„é¢,ä¸ä»»ä¸€é¢ç›¸å…³
-        for (Face face = newFaces.First; face != null; face = face.next)
-        {
-            if (face.Mark == Face.c_noneConvex)
-            {
-                face.Mark = Face.c_visible;
-                while (DoAdjacentMerge(face, c_noneConvex)) ;
-            }
-        }
-
-        ResolveUnclaimedPoints(newFaces);
-    }
-
-    /// <summary>
-    /// å»ºç«‹å‡¸å£³
-    /// </summary>
-    protected void BuildHull()
-    {
-        int cnt = 0;
-        Vertex eyeVtx;
-        ComputeMaxAndMin();
-        CreateInitialSimplex();
-        while ((eyeVtx = NextPointToAdd()) != null)
-        {
-            AddPointToHull(eyeVtx);
-            cnt++;
-            if (IsDebug)
-            {
-                Debug.Log("iteration " + cnt + " done");
-            }
-        }
-
-        ReindexFacesAndVertices();
-        if (IsDebug)
-        {
-            Debug.Log("hull done");
-        }
-    }
-
-    /// <summary>
-    /// æ ‡è®°faceä¸Šçš„é¡¶ç‚¹
-    /// </summary>
-    /// <param name="face"></param>
-    /// <param name="mark"></param>
-    private void MarkFaceVertices(Face face, int mark)
-    {
-        HalfEdge he0 = face.FirstEdge;
-        HalfEdge he = he0;
-        do
-        {
-            he.Head.index = mark;
-            he = he.Next;
-        } while (he != he0);
-    }
-
-    /// <summary>
-    /// é‡æ–°å»ºç«‹faceå’Œé¡¶æˆ´éš¾é“ç´¢å¼•
-    /// </summary>
-    protected void ReindexFacesAndVertices()
-    {
-        for (int i = 0; i < numPoints; i++)
-        {
-            pointBuffer[i].index = -1;
-        }
-
-
-        //åˆ é™¤éæ´»åŠ¨é¢å¹¶æ ‡è®°æ´»åŠ¨é¡¶ç‚¹
-        numFaces = 0;
-
-        for (int i = faces.Count - 1; i >= 0; i--)
-        {
-            Face face = faces[i];
-            if (face.Mark != Face.c_visible)
-            {
-                faces.RemoveAt(i);
-            }
-            else
-            {
-                MarkFaceVertices(face, 0);
-                numFaces++;
-            }
-        }
-
-        //é‡æ–°ç´¢å¼•é¡¶ç‚¹
-        numVertices = 0;
-        for (int i = 0; i < numPoints; i++)
-        {
-            Vertex vtx = pointBuffer[i];
-            if (vtx.index == 0)
-            {
-                vertexPointIndices[numVertices] = i;
-                vtx.index = numVertices++;
-            }
-        }
-    }
-
-    /// <summary>
-    /// æ£€æŸ¥æ–¹æ ¼å‡¸èµ·ç¨‹åº¦
-    /// </summary>
-    /// <param name="face"></param>
-    /// <param name="tol"></param>
-    /// <param name="ps"></param>
-    /// <returns></returns>
-    protected bool CheckFaceConvexity(Face face, float tol)
-    {
-        float dist;
-        HalfEdge he = face.HE0;
-        do
-        {
-            face.CheckConsistency();
-            //ç¡®ä¿è¾¹ç¼˜å‡¸èµ·
-            dist = OppFaceDistance(he);
-            if (dist > tol)
-            {
-                Debug.Log("Edge " + he.GetVertexString() + " non-convex by " + dist);
-
-                return false;
-            }
-
-            dist = OppFaceDistance(he.Opposite);
-            if (dist > tol)
-            {
-                Debug.Log("Opposite edge " + he.Opposite.GetVertexString() + " non-convex by " + dist);
-
-                return false;
-            }
-
-            if (he.Next.OppositeFace == he.OppositeFace)
-            {
-                Debug.Log("Redundant vertex " + he.Head.index + " in face " + face.GetVertexString());
-
-                return false;
-            }
-
-            he = he.Next;
-        } while (he != face.HE0);
-
-        return true;
-    }
-
-    /// <summary>
-    /// æ£€æŸ¥è¾¹ç¼˜çš„å‡¸èµ·åº¦
-    /// </summary>
-    /// <param name="tol"></param>
-    /// <returns></returns>
-    protected bool CheckFaces(float tol)
-    {
-        bool convex = true;
-        foreach (var face in faces)
-        {
-            if (face.Mark == Face.c_visible)
-            {
-                if (!CheckFaceConvexity(face, tol))
-                {
-                    convex = false;
-                }
-            }
-        }
-
-        return convex;
-    }
-
-    /// <summary>
-    /// ä½¿ç”¨è·ç¦»å…¬å·®æ£€æŸ¥å‡¸å£³çš„æ­£ç¡®æ€§
-    /// </summary>
-    /// <returns></returns>
-    public bool Check()
-    {
-        return Check(DistanceTolerance);
-    }
-
-
-    /// <summary>
-    /// æ£€æŸ¥å‡¸å£³çš„æ­£ç¡®æ€§,è¿™æ˜¯é€šè¿‡ç¡®ä¿æ²¡æœ‰ä¸€ä¸ªé¢æ˜¯éå‡¸çš„,ä¹Ÿæ²¡æœ‰ç‚¹åœ¨ä»»ä½•é¢ä¹‹å¤–
-    /// è¿™äº›æµ‹è¯•æ˜¯ä½¿ç”¨è·ç¦»å…¬å·®è¿›è¡Œçš„
-    /// å¦‚æœä»»ä½•è¾¹éƒ½æ˜¯éå‡¸çš„,åˆ™è®¤ä¸ºé¢æ˜¯éå‡¸çš„,
-    /// å¹¶ä¸”å¦‚æœä»»ä¸€ç›¸é‚»é¢çš„ä¸­å¿ƒå¤§äºåœ¨å¦ä¸€ä¸ªé¢çš„ä¸Šæ–¹,
-    /// åŒæ ·çš„å¦‚æœç‚¹ä¸é¢ä¹‹é—´çš„è·ç¦»å¤§äº10å€
-    /// </summary>
-    /// <param name="tol"></param>
-    /// <returns></returns>
-    public bool Check(float tol)
-    {
-        //æ£€æŸ¥æ‰€æœ‰è¾¹ç¼˜æ˜¯å‡¸èµ·çš„å¹¶ä¸”å®Œå…¨è¿æ¥
-        float dist;
-        float pointTol = 10 * tol;
-        if (!CheckFaces(tolerance))
-        {
             return false;
         }
 
-        //æ£€æŸ¥ç‚¹éƒ½åŒ…å«è¿›å»äº†
-        for (int i = 0; i < numPoints; i++)
+        /// <summary>
+        /// ¼ÆËãµØÆ½Ïß
+        /// </summary>
+        /// <param name="eyePnt"></param>
+        /// <param name="edge0"></param>
+        /// <param name="face"></param>
+        /// <param name="horizon"></param>
+        protected void CalculateHorizon(Vector3 eyePnt, HalfEdge edge0, Face face, List<HalfEdge> horizon)
         {
-            Vector3 pnt = pointBuffer[i].pnt;
-            foreach (var face in faces)
+            DeleteFacePoints(face, null);
+            face.mark = Face.c_Deleted;
+            if (IsDebug)
             {
-                if (face.Mark == Face.c_visible)
-                {
-                    dist = face.DistanceToPlane(pnt);
-                    if (dist > pointTol)
-                    {
-                        Debug.Log("Point " + i + " " + dist + " above face " +
-                                  face.GetVertexString());
+                Debug.Log("  visiting edge0 " + (edge0 == null ? "null" : edge0.GetVertexString()));
+                Debug.Log("  visiting face " + face.GetVertexString());
+            }
 
-                        return false;
+            HalfEdge edge;
+            if (edge0 == null)
+            {
+                edge0 = face.GetEdge(0);
+                edge = edge0;
+            }
+            else
+            {
+                edge = edge0.Next;
+            }
+
+            if (IsDebug)
+            {
+                Debug.Log("    edge: " + (edge0 == null ? "null" : edge0.GetVertexString()));
+            }
+
+            do
+            {
+                Face oppFace = edge.OppositeFace;
+                if (oppFace.mark == Face.c_Visible)
+                {
+                    if (oppFace.DistanceToPlane(eyePnt) > tolerance)
+                    {
+                        CalculateHorizon(eyePnt, edge.Opposite,
+                            oppFace, horizon);
+                    }
+                    else
+                    {
+                        horizon.Add(edge);
+                        if (IsDebug)
+                        {
+                            Debug.Log("  Adding horizon edge " +
+                                      edge.GetVertexString());
+                        }
                     }
                 }
+
+                edge = edge.Next;
+            } while (edge != edge0);
+        }
+
+        /// <summary>
+        /// Ìí¼ÓÏàÁÚµÄÃæ
+        /// </summary>
+        /// <param name="eyeVtx"></param>
+        /// <param name="he"></param>
+        /// <returns></returns>
+        private HalfEdge AddAdjoiningFace(Vertex eyeVtx, HalfEdge he)
+        {
+            Face face = Face.CreateTriangle(
+                eyeVtx, he.Tail, he.Head);
+            faces.Add(face);
+            face.GetEdge(-1).Opposite=he.Opposite;
+            return face.GetEdge(0);
+        }
+
+        /// <summary>
+        /// Ìí¼ÓĞÂµÄÃæ
+        /// </summary>
+        /// <param name="newFaces"></param>
+        /// <param name="eyeVtx"></param>
+        /// <param name="horizon"></param>
+        protected void AddNewFaces(
+            FaceList newFaces, Vertex eyeVtx, List<HalfEdge> horizon)
+        {
+            newFaces.Clear();
+            HalfEdge hedgeSidePrev = null;
+            HalfEdge hedgeSideBegin = null;
+            foreach (var horizonHe in horizon)
+            {
+                HalfEdge hedgeSide = AddAdjoiningFace(eyeVtx, horizonHe);
+                if (IsDebug)
+                {
+                    Debug.Log(
+                        "new face: " + hedgeSide.face.GetVertexString());
+                }
+
+                if (hedgeSidePrev != null)
+                {
+                    hedgeSide.next.Opposite=hedgeSidePrev;
+                }
+                else
+                {
+                    hedgeSideBegin = hedgeSide;
+                }
+
+                newFaces.Add(hedgeSide.Face);
+                hedgeSidePrev = hedgeSide;
+            }
+
+            hedgeSideBegin.next.Opposite=hedgeSidePrev;
+        }
+
+        /// <summary>
+        /// Ìí¼ÓÏÂ¸öµã
+        /// </summary>
+        /// <returns></returns>
+        protected Vertex NextPointToAdd()
+        {
+            if (!claimed.IsEmpty)
+            {
+                Face eyeFace = claimed.First.face;
+                Vertex eyeVtx = null;
+                float maxDist = 0;
+                for (Vertex vtx = eyeFace.outside;
+                    vtx != null && vtx.face == eyeFace;
+                    vtx = vtx.next)
+                {
+                    float dist = eyeFace.DistanceToPlane(vtx.pnt);
+                    if (dist > maxDist)
+                    {
+                        maxDist = dist;
+                        eyeVtx = vtx;
+                    }
+                }
+
+                return eyeVtx;
+            }
+            else
+            {
+                return null;
             }
         }
 
-        return true;
+        /// <summary>
+        /// Ìí¼Óµãµ½Í¹¿ÇÀïÃæ
+        /// </summary>
+        /// <param name="eyeVtx"></param>
+        protected void AddPointToHull(Vertex eyeVtx)
+        {
+            horizon.Clear();
+            unclaimed.Clear();
+            if (IsDebug)
+            {
+                Debug.Log("Adding point: " + eyeVtx.index);
+                Debug.Log(" which is " + eyeVtx.face.DistanceToPlane(eyeVtx.pnt) +
+                          " above face " + eyeVtx.face.GetVertexString());
+            }
+
+            RemovePointFromFace(eyeVtx, eyeVtx.face);
+            CalculateHorizon(eyeVtx.pnt, null, eyeVtx.face, horizon);
+            newFaces.Clear();
+            AddNewFaces(newFaces, eyeVtx, horizon);
+
+
+            //µÚÒ»¸öºÏ²¢¹ı³Ì  ºÏ²¢½Ï´óµÄ·ÇÍ¹ÆğµÄÃæ
+            for (Face face = newFaces.First(); face != null; face = face.next)
+            {
+                if (face.mark == Face.c_Visible)
+                {
+                    while (DoAdjacentMerge(face, c_NoneconvexWrtLargerFace))
+                        ;
+                }
+            }
+
+            //µÚ¶ş¸öºÏ²¢¹ı³Ì ºÏ²¢·ÇÍ¹ÃæµÄÃæ,ÓëÈÎÒ»ÃæÏà¹Ø
+            for (Face face = newFaces.First(); face != null; face = face.next)
+            {
+                if (face.mark == Face.c_NoneConvex)
+                {
+                    face.mark = Face.c_Visible;
+                    while (DoAdjacentMerge(face, c_NoneConvex))
+                        ;
+                }
+            }
+
+            ResolveUnclaimedPoints(newFaces);
+        }
+
+        /// <summary>
+        /// ½¨Á¢Í¹¿Ç
+        /// </summary>
+        protected void BuildHull()
+        {
+            int cnt = 0;
+            Vertex eyeVtx;
+            ComputeMaxAndMin();
+            CreateInitialSimplex();
+            while ((eyeVtx = NextPointToAdd()) != null)
+            {
+                AddPointToHull(eyeVtx);
+                cnt++;
+                if (IsDebug)
+                {
+                    Debug.Log("iteration " + cnt + " done");
+                }
+            }
+
+            ReindexFacesAndVertices();
+            if (IsDebug)
+            {
+                Debug.Log("hull done");
+            }
+        }
+
+        /// <summary>
+        /// ±ê¼ÇfaceÉÏµÄ¶¥µã
+        /// </summary>
+        /// <param name="face"></param>
+        /// <param name="mark"></param>
+        private void MarkFaceVertices(Face face, int mark)
+        {
+            HalfEdge he0 = face.GetFirstEdge();
+            HalfEdge he = he0;
+            do
+            {
+                he.Head.index = mark;
+                he = he.next;
+            } while (he != he0);
+        }
+
+        /// <summary>
+        /// ÖØĞÂ½¨Á¢faceºÍ¶¥´÷ÄÑµÀË÷Òı
+        /// </summary>
+        protected void ReindexFacesAndVertices()
+        {
+            for (int i = 0; i < numPoints; i++)
+            {
+                pointBuffer[i].index = -1;
+            }
+
+            //É¾³ı·Ç»î¶¯Ãæ²¢±ê¼Ç»î¶¯¶¥µã
+            numFaces = 0;
+
+            for (int i = faces.Count - 1; i >= 0; i--)
+            {
+                Face face = faces[i];
+                if (face.mark != Face.c_Visible)
+                {
+                    faces.RemoveAt(i);
+                }
+                else
+                {
+                    MarkFaceVertices(face, 0);
+                    numFaces++;
+                }
+            }
+
+            //ÖØĞÂË÷Òı¶¥µã
+            numVertices = 0;
+            for (int i = 0; i < numPoints; i++)
+            {
+                Vertex vtx = pointBuffer[i];
+                if (vtx.index == 0)
+                {
+                    vertexPointIndices[numVertices] = i;
+                    vtx.index = numVertices++;
+                }
+            }
+        }
     }
 }
