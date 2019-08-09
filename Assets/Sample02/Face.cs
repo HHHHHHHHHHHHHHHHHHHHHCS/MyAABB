@@ -1,4 +1,3 @@
-
 namespace QHull
 {
     using UnityEngine;
@@ -22,7 +21,7 @@ namespace QHull
         /// <summary>
         /// 面积
         /// </summary>
-        public double area;
+        public float area;
 
         /// <summary>
         /// 中心点
@@ -32,7 +31,7 @@ namespace QHull
         /// <summary>
         /// 面板偏移
         /// </summary>
-        public double planeOffset;
+        public float planeOffset;
 
         /// <summary>
         /// face的Index
@@ -81,15 +80,15 @@ namespace QHull
         /// <param name="centroid"></param>
         public void ComputeCentroid()
         {
-            centroid.x = centroid.y= centroid.z =0;
+            centroid = Vector3.zero;
             HalfEdge he = he0;
             do
             {
-                centroid+=(he.Head.pnt);
+                centroid += (he.Head.pnt);
                 he = he.next;
             } while (he != he0);
 
-            centroid/=  numVerts;
+            centroid /= numVerts;
         }
 
         /// <summary>
@@ -97,7 +96,7 @@ namespace QHull
         /// </summary>
         /// <param name="normal"></param>
         /// <param name="minArea"></param>
-        public void ComputeNormal( double minArea)
+        public void ComputeNormal(float minArea)
         {
             ComputeNormal();
 
@@ -107,11 +106,11 @@ namespace QHull
                 //通过删除最长的边 来让法线更准确
 
                 HalfEdge hedgeMax = null;
-                double lenSqrMax = 0;
+                float lenSqrMax = 0;
                 HalfEdge hedge = he0;
                 do
                 {
-                    double lenSqr = hedge.LengthSquared();
+                    float lenSqr = hedge.LengthSquared();
                     if (lenSqr > lenSqrMax)
                     {
                         hedgeMax = hedge;
@@ -123,15 +122,10 @@ namespace QHull
 
                 Vector3 p2 = hedgeMax.Head.pnt;
                 Vector3 p1 = hedgeMax.Tail.pnt;
-                double lenMax = Math.Sqrt(lenSqrMax);
-                double ux = (p2.x - p1.x) / lenMax;
-                double uy = (p2.y - p1.y) / lenMax;
-                double uz = (p2.z - p1.z) / lenMax;
-                double dot = normal.x * ux + normal.y * uy + normal.z * uz;
-                normal.x -= (float)(dot * ux);
-                normal.y -= (float)(dot * uy);
-                normal.z -= (float)(dot * uz);
-
+                float lenMax = Mathf.Sqrt(lenSqrMax);
+                Vector3 ud = (p2 - p1) / lenMax;
+                float dot = Vector3.Dot(ud, normal);
+                normal -= (dot * ud);
                 normal.Normalize();
             }
         }
@@ -147,28 +141,20 @@ namespace QHull
             Vector3 p0 = he0.Head.pnt;
             Vector3 p2 = he1.Head.pnt;
 
-            double d2x = p2.x - p0.x;
-            double d2y = p2.y - p0.y;
-            double d2z = p2.z - p0.z;
+            Vector3 d2 = p2 - p0;
 
-            normal.x = normal.y = normal.z = 0;
+            normal = Vector3.zero;
 
             numVerts = 2;
 
             while (he2 != he0)
             {
-                double d1x = d2x;
-                double d1y = d2y;
-                double d1z = d2z;
+                Vector3 d1 = d2;
 
                 p2 = he2.Head.pnt;
-                d2x = p2.x - p0.x;
-                d2y = p2.y - p0.y;
-                d2z = p2.z - p0.z;
+                d2 = p2 - p0;
 
-                normal.x += (float)(d1y * d2z - d1z * d2y);
-                normal.y += (float)(d1z * d2x - d1x * d2z);
-                normal.z += (float)(d1x * d2y - d1y * d2x);
+                normal += Vector3.Cross(d1, d2);
 
                 he1 = he2;
                 he2 = he2.next;
@@ -178,7 +164,7 @@ namespace QHull
 
             //叉积的绝对值的一半 是面积
             area = normal.magnitude;
-            normal/=(float)area;
+            normal /= area;
         }
 
         /// <summary>
@@ -188,7 +174,7 @@ namespace QHull
         {
             ComputeNormal();
             ComputeCentroid();
-            planeOffset =Vector3.Dot(normal, centroid);
+            planeOffset = Vector3.Dot(normal, centroid);
             int numv = 0;
             HalfEdge he = he0;
             do
@@ -207,11 +193,11 @@ namespace QHull
         /// <summary>
         /// 计算法线和中心点
         /// </summary>
-        private void ComputeNormalAndCentroid(double minArea)
+        private void ComputeNormalAndCentroid(float minArea)
         {
-            ComputeNormal( minArea);
+            ComputeNormal(minArea);
             ComputeCentroid();
-            planeOffset = Vector3.Dot(normal,centroid);
+            planeOffset = Vector3.Dot(normal, centroid);
         }
 
         /// <summary>
@@ -235,7 +221,7 @@ namespace QHull
         /// <param name="minArea"></param>
         /// <returns></returns>
         public static Face CreateTriangle(Vertex v0, Vertex v1, Vertex v2,
-            double minArea)
+            float minArea)
         {
             Face face = new Face();
             HalfEdge he0 = new HalfEdge(v0, face);
@@ -271,8 +257,8 @@ namespace QHull
                 HalfEdge he = new HalfEdge(vtxArray[indices[i]], face);
                 if (hePrev != null)
                 {
-                    he.Prev=(hePrev);
-                    hePrev.Next=(he);
+                    he.Prev = (hePrev);
+                    hePrev.Next = (he);
                 }
                 else
                 {
@@ -282,8 +268,8 @@ namespace QHull
                 hePrev = he;
             }
 
-            face.he0.Prev=(hePrev);
-            hePrev.Next=(face.he0);
+            face.he0.Prev = (hePrev);
+            hePrev.Next = (face.he0);
 
             //计算法线 中心点  和 偏移
 
@@ -325,10 +311,8 @@ namespace QHull
         /// 得到第一条边
         /// </summary>
         /// <returns></returns>
-        public HalfEdge GetFirstEdge()
-        {
-            return he0;
-        }
+        public HalfEdge FirstEdge => he0;
+
 
         /// <summary>
         /// 根据头尾两个点,得到边
@@ -336,7 +320,7 @@ namespace QHull
         /// <param name="vt"></param>
         /// <param name="vh"></param>
         /// <returns></returns>
-        public HalfEdge FindEdge(Vertex vt, Vertex vh)
+        public HalfEdge GetFindEdge(Vertex vt, Vertex vh)
         {
             HalfEdge he = he0;
             do
@@ -357,9 +341,9 @@ namespace QHull
         /// </summary>
         /// <param name="p"></param>
         /// <returns></returns>
-        public double DistanceToPlane(Vector3 p)
+        public float DistanceToPlane(Vector3 p)
         {
-            return normal.x * p.x + normal.y * p.y + normal.z * p.z - planeOffset;
+            return Vector3.Dot(normal, p) - planeOffset;
         }
 
         /// <summary>
@@ -381,14 +365,14 @@ namespace QHull
         /// 输出信息
         /// </summary>
         /// <returns></returns>
-        public String GetVertexString()
+        public string GetVertexString()
         {
             return ToString();
         }
 
         public override string ToString()
         {
-            String s = null;
+            string s = null;
             HalfEdge he = he0;
             do
             {
@@ -467,7 +451,7 @@ namespace QHull
                 hedge.prev = hedgePrev.prev;
                 hedge.prev.next = hedge;
 
-                hedge.Opposite=(hedgeOpp);
+                hedge.Opposite = (hedgeOpp);
 
                 //面被修改了 所以需要重新计算
                 oppFace.ComputeNormalAndCentroid();
@@ -489,7 +473,7 @@ namespace QHull
         {
             //在面上做检查
             HalfEdge hedge = he0;
-            double maxd = 0;
+            float maxd = 0;
             int numv = 0;
 
             if (numVerts < 3)
@@ -503,7 +487,7 @@ namespace QHull
                 if (hedgeOpp == null)
                 {
                     throw new Exception("face " + GetVertexString() + ": " +
-                        "unreflected half edge " + hedge.getVertexString());
+                                        "unreflected half edge " + hedge.getVertexString());
                 }
                 else if (hedgeOpp.Opposite != hedge)
                 {
@@ -538,7 +522,7 @@ namespace QHull
                         " not on hull");
                 }
 
-                double d = Math.Abs(DistanceToPlane(hedge.Head.pnt));
+                float d = Mathf.Abs(DistanceToPlane(hedge.Head.pnt));
                 if (d > maxd)
                 {
                     maxd = d;
@@ -561,7 +545,7 @@ namespace QHull
         /// <param name="hedgeAdj"></param>
         /// <param name="discarded"></param>
         /// <returns></returns>
-        public int MergeAdjacentFace(HalfEdge hedgeAdj,Face[] discarded)
+        public int MergeAdjacentFace(HalfEdge hedgeAdj, Face[] discarded)
         {
             Face oppFace = hedgeAdj.OppositeFace;
             int numDiscarded = 0;
@@ -628,27 +612,18 @@ namespace QHull
         /// <param name="hedge0"></param>
         /// <param name="hedge1"></param>
         /// <returns></returns>
-        private double AreaSquared(HalfEdge hedge0, HalfEdge hedge1)
+        private float AreaSquared(HalfEdge hedge0, HalfEdge hedge1)
         {
             //返回两条边产生的面积
-            //TODO:
             Vector3 p0 = hedge0.Tail.pnt;
             Vector3 p1 = hedge0.Head.pnt;
             Vector3 p2 = hedge1.Head.pnt;
 
-            double dx1 = p1.x - p0.x;
-            double dy1 = p1.y - p0.y;
-            double dz1 = p1.z - p0.z;
+            Vector3 d1 = p1 - p0;
+            Vector3 d2 = p2 - p0;
 
-            double dx2 = p2.x - p0.x;
-            double dy2 = p2.y - p0.y;
-            double dz2 = p2.z - p0.z;
 
-            double x = dy1 * dz2 - dz1 * dy2;
-            double y = dz1 * dx2 - dx1 * dz2;
-            double z = dx1 * dy2 - dy1 * dx2;
-
-            return x * x + y * y + z * z;
+            return Vector3.Cross(d1,d2).sqrMagnitude;
         }
 
         /// <summary>
@@ -656,7 +631,7 @@ namespace QHull
         /// </summary>
         /// <param name="newFaces"></param>
         /// <param name="minArea"></param>
-        public void Triangulate(FaceList newFaces, double minArea)
+        public void Triangulate(FaceList newFaces, float minArea)
         {
             HalfEdge hedge;
 
@@ -676,8 +651,8 @@ namespace QHull
             {
                 Face face =
                     CreateTriangle(v0, hedge.prev.Head, hedge.Head, minArea);
-                face.he0.next.Opposite=(oppPrev);
-                face.he0.prev.Opposite=(hedge.opposite);
+                face.he0.next.Opposite = (oppPrev);
+                face.he0.prev.Opposite = (hedge.opposite);
                 oppPrev = face.he0;
                 newFaces.Add(face);
                 if (face0 == null)
@@ -687,7 +662,7 @@ namespace QHull
             }
 
             hedge = new HalfEdge(he0.prev.prev.Head, this);
-            hedge.Opposite=(oppPrev);
+            hedge.Opposite = (oppPrev);
 
             hedge.prev = he0;
             hedge.prev.next = hedge;

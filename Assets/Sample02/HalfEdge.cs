@@ -130,7 +130,7 @@ namespace QHull
         /// 头点到尾点的距离
         /// </summary>
         /// <returns></returns>
-        public double Length()
+        public float Length()
         {
             if (Tail != null)
             {

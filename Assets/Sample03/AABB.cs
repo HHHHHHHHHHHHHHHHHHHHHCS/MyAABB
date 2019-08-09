@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class AABB
 {
-    public const int cutCount = 3;
+    public const int cutCount = 5;
 
 
     public List<Vector3> Build(Vector3[] _points)

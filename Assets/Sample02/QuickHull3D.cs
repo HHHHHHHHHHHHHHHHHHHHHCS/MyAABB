@@ -30,7 +30,12 @@ namespace QHull
         /// <summary>
         /// 根据输入点数据自动计算距离公差
         /// </summary>
-        public const double c_AutomaticTolerance = -1;
+        public const float c_AutomaticTolerance = -1;
+
+        /// <summary>
+        /// 精准度误差
+        /// </summary>
+        private const float c_FloatPrec = 0.00000001f;
 
         /// <summary>
         /// 要被查找的index
@@ -40,7 +45,7 @@ namespace QHull
         /// <summary>
         /// 三视图AABB最长的那条
         /// </summary>
-        protected double charLength;
+        protected float charLength;
 
         /// <summary>
         /// 是否输出Debug
@@ -69,16 +74,12 @@ namespace QHull
         /// <summary>
         /// 距离公差
         /// </summary>
-        protected double explicitTolerance = c_AutomaticTolerance;
+        protected float explicitTolerance = c_AutomaticTolerance;
+
         /// <summary>
         /// 距离公差
         /// </summary>
-        protected double tolerance;
-
-        /**
-         * Precision of a double.
-         */
-        private const double DOUBLE_PREC = 2.2204460492503131e-16;
+        protected float tolerance;
 
 
         /// <summary>
@@ -86,15 +87,15 @@ namespace QHull
         /// 距离用于确定两个面之间的凸起,并且点明显位于面平面的上方或者下方
         /// 存在不精准性
         /// </summary>
-        public double DistanceTolerance => tolerance;
+        public float DistanceTolerance => tolerance;
 
         /// <summary>
         /// 距离公差
         /// </summary>
-        public double ExplicitDistanceTolerance
+        public float ExplicitDistanceTolerance
         {
             get => explicitTolerance;
-            set =>explicitTolerance = value;
+            set => explicitTolerance = value;
         }
 
 
@@ -179,7 +180,7 @@ namespace QHull
         /// 用float[]->xyz进行构造
         /// </summary>
         /// <param name="coords"></param>
-        public QuickHull3D(double[] coords)
+        public QuickHull3D(float[] coords)
         {
             Build(coords, coords.Length / 3);
         }
@@ -204,7 +205,7 @@ namespace QHull
         {
             foreach (var face in faces)
             {
-                HalfEdge he = face.FindEdge(tail, head);
+                HalfEdge he = face.GetFindEdge(tail, head);
                 if (he != null)
                 {
                     return he;
@@ -221,7 +222,7 @@ namespace QHull
         /// <param name="nump"></param>
         /// <param name="faceIndices"></param>
         /// <param name="numf"></param>
-        protected void SetHull(double[] coords, int nump, int[][] faceIndices, int numf)
+        protected void SetHull(float[] coords, int nump, int[][] faceIndices, int numf)
         {
             InitBuffers(nump);
             SetPoints(coords, nump);
@@ -249,7 +250,7 @@ namespace QHull
         /// 根据输入的float[]->转换为xyz点生成凸包
         /// </summary>
         /// <param name="coords"></param>
-        public void Build(double[] coords)
+        public void Build(float[] coords)
         {
             Build(coords, coords.Length / 3);
         }
@@ -259,7 +260,7 @@ namespace QHull
         /// </summary>
         /// <param name="coords"></param>
         /// <param name="nump"></param>
-        public void Build(double[] coords, int nump)
+        public void Build(float[] coords, int nump)
         {
             if (nump < 4)
             {
@@ -316,7 +317,7 @@ namespace QHull
         /// </summary>
         public void Triangulate()
         {
-            double minArea = 1000 * charLength * DOUBLE_PREC;
+            float minArea = 1000 * charLength * c_FloatPrec;
             newFaces.Clear();
 
             foreach (var face in faces)
@@ -367,14 +368,14 @@ namespace QHull
         /// </summary>
         /// <param name="coords"></param>
         /// <param name="nump"></param>
-        protected void SetPoints(double[] coords, int nump)
+        protected void SetPoints(float[] coords, int nump)
         {
             for (int i = 0; i < nump; i++)
             {
                 Vertex vtx = pointBuffer[i];
-                vtx.pnt[0] = (float) coords[i * 3 + 0];
-                vtx.pnt[1] = (float) coords[i * 3 + 1];
-                vtx.pnt[2] = (float) coords[i * 3 + 2];
+                vtx.pnt[0] = coords[i * 3 + 0];
+                vtx.pnt[1] = coords[i * 3 + 1];
+                vtx.pnt[2] = coords[i * 3 + 2];
                 vtx.index = i;
             }
         }
@@ -446,14 +447,13 @@ namespace QHull
             }
 
 
-            charLength = Math.Max(max.x - min.x, max.y - min.y);
-            charLength = Math.Max(max.z - min.z, charLength);
+            charLength = Mathf.Max(max.x - min.x, max.y - min.y, max.z - min.z);
             if (explicitTolerance == c_AutomaticTolerance)
             {
                 tolerance =
-                    3 * DOUBLE_PREC * (Math.Max(Math.Abs(max.x), Math.Abs(min.x)) +
-                                       Math.Max(Math.Abs(max.y), Math.Abs(min.y)) +
-                                       Math.Max(Math.Abs(max.z), Math.Abs(min.z)));
+                    3 * c_FloatPrec * (Mathf.Max(Mathf.Abs(max.x), Mathf.Abs(min.x)) +
+                                       Mathf.Max(Mathf.Abs(max.y), Mathf.Abs(min.y)) +
+                                       Mathf.Max(Mathf.Abs(max.z), Mathf.Abs(min.z)));
             }
             else
             {
@@ -466,12 +466,12 @@ namespace QHull
         /// </summary>
         protected void CreateInitialSimplex()
         {
-            double max = 0;
+            float max = 0;
 
             int imax = 0;
             for (int i = 0; i < 3; i++)
             {
-                double diff = maxVtxs[i].pnt[i] - minVtxs[i].pnt[i];
+                float diff = maxVtxs[i].pnt[i] - minVtxs[i].pnt[i];
                 if (diff > max)
                 {
                     max = diff;
@@ -496,14 +496,14 @@ namespace QHull
             Vector3 diff02 = new Vector3();
             Vector3 nrml = new Vector3();
             Vector3 xprod = new Vector3();
-            double maxSqr = 0;
+            float maxSqr = 0;
             u01 = (vtx[1].pnt - vtx[0].pnt);
             u01.Normalize();
             for (int i = 0; i < numPoints; i++)
             {
                 diff02 = (pointBuffer[i].pnt - vtx[0].pnt);
                 xprod = Vector3.Cross(u01, diff02);
-                double lenSqr = xprod.sqrMagnitude;
+                float lenSqr = xprod.sqrMagnitude;
                 // 检测漏的点
                 if (lenSqr > maxSqr &&
                     pointBuffer[i] != vtx[0] &&
@@ -515,7 +515,7 @@ namespace QHull
                 }
             }
 
-            if (Math.Sqrt(maxSqr) <= 100 * tolerance)
+            if (Mathf.Sqrt(maxSqr) <= 100 * tolerance)
             {
                 throw new Exception(
                     "Input points appear to be colinear");
@@ -529,11 +529,11 @@ namespace QHull
             res = Vector3.Dot(nrml, u01) * u01; // 沿u01的nrml的延长
             nrml -= res;
             nrml.Normalize();
-            double maxDist = 0;
-            double d0 = Vector3.Dot(vtx[2].pnt, nrml);
+            float maxDist = 0;
+            float d0 = Vector3.Dot(vtx[2].pnt, nrml);
             for (int i = 0; i < numPoints; i++)
             {
-                double dist = Math.Abs(Vector3.Dot(pointBuffer[i].pnt, nrml) - d0);
+                float dist = Mathf.Abs(Vector3.Dot(pointBuffer[i].pnt, nrml) - d0);
                 // 检测漏的点
                 if (dist > maxDist &&
                     pointBuffer[i] != vtx[0] &&
@@ -545,7 +545,7 @@ namespace QHull
                 }
             }
 
-            if (Math.Abs(maxDist) <= 100 * tolerance)
+            if (Mathf.Abs(maxDist) <= 100 * tolerance)
             {
                 throw new Exception(
                     "Input points appear to be coplanar");
@@ -605,7 +605,7 @@ namespace QHull
                 Face maxFace = null;
                 for (int k = 0; k < 4; k++)
                 {
-                    double dist = tris[k].DistanceToPlane(v.pnt);
+                    float dist = tris[k].DistanceToPlane(v.pnt);
                     if (dist > maxDist)
                     {
                         maxFace = tris[k];
@@ -623,10 +623,8 @@ namespace QHull
         /// <summary>
         /// 得到顶点的数量
         /// </summary>
-        public int getNumVertices()
-        {
-            return numVertices;
-        }
+        public int NumVertices => numVertices;
+
 
         /// <summary>
         /// 得到顶点
@@ -649,7 +647,7 @@ namespace QHull
         /// </summary>
         /// <param name="coords"></param>
         /// <returns></returns>
-        public int GetVertices(double[] coords)
+        public int GetVertices(float[] coords)
         {
             for (int i = 0; i < numVertices; i++)
             {
@@ -682,10 +680,7 @@ namespace QHull
         /// 面片的数量
         /// </summary>
         /// <returns></returns>
-        public int getNumFaces()
-        {
-            return faces.Count;
-        }
+        public int NumFaces=> faces.Count;
 
         /// <summary>
         /// 返回与此外壳相光联的面
@@ -762,7 +757,7 @@ namespace QHull
             for (Vertex vtx = vtxNext; vtx != null; vtx = vtxNext)
             {
                 vtxNext = vtx.next;
-                double maxDist = tolerance;
+                float maxDist = tolerance;
                 Face maxFace = null;
                 for (Face newFace = newFaces.First;
                     newFace != null;
@@ -770,7 +765,7 @@ namespace QHull
                 {
                     if (newFace.mark == Face.c_Visible)
                     {
-                        double dist = newFace.DistanceToPlane(vtx.pnt);
+                        float dist = newFace.DistanceToPlane(vtx.pnt);
                         if (dist > maxDist)
                         {
                             maxDist = dist;
@@ -824,7 +819,7 @@ namespace QHull
                     for (Vertex vtx = vtxNext; vtx != null; vtx = vtxNext)
                     {
                         vtxNext = vtx.next;
-                        double dist = absorbingFace.DistanceToPlane(vtx.pnt);
+                        float dist = absorbingFace.DistanceToPlane(vtx.pnt);
                         if (dist > tolerance)
                         {
                             AddPointToFace(vtx, absorbingFace);
@@ -853,7 +848,7 @@ namespace QHull
         /// </summary>
         /// <param name="he"></param>
         /// <returns></returns>
-        protected double OppFaceDistance(HalfEdge he)
+        protected float OppFaceDistance(HalfEdge he)
         {
             return he.face.DistanceToPlane(he.opposite.face.Centroid);
         }
@@ -872,7 +867,7 @@ namespace QHull
             {
                 Face oppFace = hedge.OppositeFace;
                 bool merge = false;
-                double dist1, dist2;
+                float dist1, dist2;
                 if (mergeType == c_NoneConvex)
                 {
                     //如果是非凸起的面,则进行合并
@@ -1068,12 +1063,12 @@ namespace QHull
             {
                 Face eyeFace = claimed.First.face;
                 Vertex eyeVtx = null;
-                double maxDist = 0;
+                float maxDist = 0;
                 for (Vertex vtx = eyeFace.outside;
                     vtx != null && vtx.face == eyeFace;
                     vtx = vtx.next)
                 {
-                    double dist = eyeFace.DistanceToPlane(vtx.pnt);
+                    float dist = eyeFace.DistanceToPlane(vtx.pnt);
                     if (dist > maxDist)
                     {
                         maxDist = dist;
@@ -1127,8 +1122,7 @@ namespace QHull
                 if (face.mark == Face.c_NoneConvex)
                 {
                     face.mark = Face.c_Visible;
-                    while (DoAdjacentMerge(face, c_NoneConvex))
-                        ;
+                    while (DoAdjacentMerge(face, c_NoneConvex));
                 }
             }
 
@@ -1168,7 +1162,7 @@ namespace QHull
         /// <param name="mark"></param>
         private void MarkFaceVertices(Face face, int mark)
         {
-            HalfEdge he0 = face.GetFirstEdge();
+            HalfEdge he0 = face.FirstEdge;
             HalfEdge he = he0;
             do
             {
@@ -1216,158 +1210,5 @@ namespace QHull
                 }
             }
         }
-
-        /*
-        protected bool checkFaceConvexity(
-            Face face, double tol, PrintStream ps)
-        {
-            double dist;
-            HalfEdge he = face.he0;
-            do
-            {
-                face.checkConsistency();
-    // make sure edge is convex
-                dist = OppFaceDistance(he);
-                if (dist > tol)
-                {
-                    if (ps != null)
-                    {
-                        ps.println("Edge " + he.getVertexString() +
-                                   " non-convex by " + dist);
-                    }
-    
-                    return false;
-                }
-    
-                dist = OppFaceDistance(he.opposite);
-                if (dist > tol)
-                {
-                    if (ps != null)
-                    {
-                        ps.println("Opposite edge " +
-                                   he.opposite.getVertexString() +
-                                   " non-convex by " + dist);
-                    }
-    
-                    return false;
-                }
-    
-                if (he.next.OppositeFace == he.OppositeFace)
-                {
-                    if (ps != null)
-                    {
-                        ps.println("Redundant vertex " + he.Head.index +
-                                   " in face " + face.getVertexString());
-                    }
-    
-                    return false;
-                }
-    
-                he = he.next;
-            } while (he != face.he0);
-    
-            return true;
-        }
-        */
-
-        /*
-        protected bool checkFaces(double tol, PrintStream ps)
-        {
-    // check edge convexity
-            bool convex = true;
-            for (Iterator it = faces.iterator(); it.hasNext();)
-            {
-                Face face = (Face) it.next();
-                if (face.mark == Face.c_Visible)
-                {
-                    if (!checkFaceConvexity(face, tol, ps))
-                    {
-                        convex = false;
-                    }
-                }
-            }
-    
-            return convex;
-        }
-        */
-
-/**
- * Checks the correctness of the hull using the distance tolerance
- * returned by {@link QuickHull3D#DistanceTolerance
- * DistanceTolerance}; see
- * {@link QuickHull3D#check(PrintStream, double)
- * check(PrintStream,double)} for details.
- *
- * @param ps print stream for diagnostic messages; may be
- *           set to <code>null</code> if no messages are desired.
- * @return true if the hull is valid
- * @see QuickHull3D#check(PrintStream, double)
- */
-/*
-    public bool check(PrintStream ps)
-    {
-        return check(ps, DistanceTolerance());
-    }
-    */
-/**
- * Checks the correctness of the hull. This is done by making sure that
- * no faces are non-convex and that no points are outside any face.
- * These tests are performed using the distance tolerance <i>tol</i>.
- * Faces are considered non-convex if any edge is non-convex, and an
- * edge is non-convex if the centroid of either adjoining face is more
- * than <i>tol</i> above the plane of the other face. Similarly,
- * a point is considered outside a face if its distance to that face's
- * plane is more than 10 times <i>tol</i>.
- *
- * <p>If the hull has been {@link #triangulate triangulated},
- * then this routine may fail if some of the resulting
- * triangles are very small or thin.
- *
- * @param ps  print stream for diagnostic messages; may be
- *            set to <code>null</code> if no messages are desired.
- * @param tol distance tolerance
- * @return true if the hull is valid
- * @see QuickHull3D#check(PrintStream)
- */
-/*
-    public bool check(PrintStream ps, double tol)
-    {
-// check to make sure all edges are fully connected
-// and that the edges are convex
-        double dist;
-        double pointTol = 10 * tol;
-        if (!checkFaces(tolerance, ps))
-        {
-            return false;
-        }
-
-// check point inclusion
-        for (int i = 0; i < numPoints; i++)
-        {
-            Vector3 pnt = pointBuffer[i].pnt;
-            for (Iterator it = faces.iterator(); it.hasNext();)
-            {
-                Face face = (Face) it.next();
-                if (face.mark == Face.c_Visible)
-                {
-                    dist = face.distanceToPlane(pnt);
-                    if (dist > pointTol)
-                    {
-                        if (ps != null)
-                        {
-                            ps.println(
-                                "Point " + i + " " + dist + " above face " +
-                                face.getVertexString());
-                        }
-
-                        return false;
-                    }
-                }
-            }
-        }
-
-        return true;
-    }
-    */
     }
 }
