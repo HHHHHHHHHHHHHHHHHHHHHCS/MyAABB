@@ -1,56 +1,55 @@
 namespace QHull
 {
     using System;
-    using UnityEngine;
 
-    /// <summary>
-    /// 点
-    /// </summary>
+/**
+ * Represents vertices of the hull, as well as the points from
+ * which it is formed.
+ *
+ * @author John E. Lloyd, Fall 2004
+ */
     public class Vertex
     {
-        /// <summary>
-        /// 顶点的点的位置
-        /// </summary>
-        public Vector3 pnt;
+        /**
+         * Spatial point associated with this vertex.
+         */
+        public Point3d pnt;
 
-        /// <summary>
-        /// 顶点的索引
-        /// </summary>
+        /**
+         * Back index into an array.
+         */
         public int index;
 
-        /// <summary>
-        /// 顶点List 上一个点
-        /// </summary>
+        /**
+         * List forward link.
+         */
         public Vertex prev;
 
-        /// <summary>
-        /// 顶点List 下一个点
-        /// </summary>
+        /**
+         * List backward link.
+         */
         public Vertex next;
 
-        /// <summary>
-        /// 顶点所在的面
-        /// </summary>
+        /**
+         * Current face that this vertex is outside of.
+         */
         public Face face;
 
-        /// <summary>
-        /// 构造一个空的点
-        /// </summary>
+        /**
+         * Constructs a vertex and sets its coordinates to 0.
+         */
         public Vertex()
         {
-            pnt = Vector3.zero;
+            pnt = new Point3d();
         }
 
-        /// <summary>
-        /// 点
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <param name="z"></param>
-        /// <param name="idx"></param>
-        public Vertex(float x, float y, float z, int idx)
+        /**
+         * Constructs a vertex with the specified coordinates
+         * and index.
+         */
+        public Vertex(double x, double y, double z, int idx)
         {
-            pnt = new Vector3(x, y, z);
+            pnt = new Point3d(x, y, z);
             index = idx;
         }
     }

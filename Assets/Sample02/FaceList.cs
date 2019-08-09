@@ -2,27 +2,26 @@ namespace QHull
 {
     using System;
 
-    /// <summary>
-    /// 面的链表
-    /// </summary>
+/**
+ * Maintains a single-linked list of faces for use by QuickHull3D
+ */
     public class FaceList
     {
         private Face head;
         private Face tail;
 
-        /// <summary>
-        /// 清空链表
-        /// </summary>
-        public void Clear()
+        /**
+         * Clears this list.
+         */
+        public void clear()
         {
             head = tail = null;
         }
 
-        /// <summary>
-        /// 把面添加到链表里面
-        /// </summary>
-        /// <param name="vtx"></param>
-        public void Add(Face vtx)
+        /**
+         * Adds a vertex to the end of this list.
+         */
+        public void add(Face vtx)
         {
             if (head == null)
             {
@@ -37,16 +36,17 @@ namespace QHull
             tail = vtx;
         }
 
-        /// <summary>
-        /// 返回第一个面
-        /// </summary>
-        /// <returns></returns>
-        public Face First() => head;
+        public Face first()
+        {
+            return head;
+        }
 
-
-        /// <summary>
-        /// 是否是空的链表
-        /// </summary>
-        public bool IsEmpty => head == null;
+        /**
+         * Returns true if this list is empty.
+         */
+        public bool isEmpty()
+        {
+            return head == null;
+        }
     }
 }

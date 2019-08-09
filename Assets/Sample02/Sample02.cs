@@ -30,14 +30,14 @@ namespace QHull
             Debug.Log("Ori Vertex Count:" + v3s.Length);
 
             QuickHull3D hull = new QuickHull3D();
-            hull.Build(points);
+            hull.build(ToPoint3d(points));
 
-            Vector3[] vertices = hull.GetVertices();
+            Point3d[] vertices = hull.getVertices();
             StringBuilder sb = new StringBuilder();
             sb.Append($"Vertices:{vertices.Length}\n");
             for (int i = 0; i < vertices.Length; i++)
             {
-                Vector3 pnt = vertices[i];
+                Vector3d pnt = vertices[i];
                 sb.Append($"  {pnt.x},{pnt.y},{pnt.z}\n");
             }
 
@@ -46,7 +46,7 @@ namespace QHull
 
             sb.Clear();
             List<int> faces = new List<int>();
-            int[][] faceIndices = hull.GetFaces();
+            int[][] faceIndices = hull.getFaces();
             sb.Append($"Faces:{vertices.Length}\n");
             for (int i = 0; i < vertices.Length; i++)
             {
@@ -62,7 +62,7 @@ namespace QHull
                         }
                     }
 
-                    Instantiate(prefab_m, vertices[faceIndices[i][j]], Quaternion.identity);
+                    Instantiate(prefab_m, ToVector3(vertices[faceIndices[i][j]]), Quaternion.identity);
                 }
 
                 sb.Append('\n');
@@ -73,7 +73,7 @@ namespace QHull
 
             faceArray = faces.ToArray();
             triArray = new int[faceArray.Length];
-            Mesh mesh = new Mesh {vertices = vertices, triangles = faceArray};
+            Mesh mesh = new Mesh {vertices = ToVector3(vertices), triangles = faceArray};
             col.mesh = mesh;
             //StartCoroutine(NewMesh());
         }
@@ -88,6 +88,35 @@ namespace QHull
                 col.mesh.triangles = triArray;
                 yield return new WaitForSeconds(0.05f);
             }
+        }
+
+
+        public static Point3d[] ToPoint3d(Vector3[] v3s)
+        {
+            Point3d[] p3s = new Point3d[v3s.Length];
+            for (int i = 0; i < v3s.Length; i++)
+            {
+                Vector3 v3 = v3s[i];
+                p3s[i] = new Point3d(v3.x, v3.y, v3.z);
+            }
+
+            return p3s;
+        }
+
+        public static Vector3 ToVector3(Point3d p3d)
+        {
+            return new Vector3((float)p3d.x, (float)p3d.y, (float)p3d.z);
+        }
+
+        public static Vector3[] ToVector3(Point3d[] p3ds)
+        {
+            Vector3[] v3s = new Vector3[p3ds.Length];
+            for (int i = 0; i < p3ds.Length; i++)
+            {
+                v3s[i] = ToVector3(p3ds[i]);
+            }
+
+            return v3s;
         }
     }
 }
