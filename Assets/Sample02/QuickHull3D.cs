@@ -1,4 +1,4 @@
-namespace QHull
+ï»¿namespace QHull
 {
     using System;
     using System.Collections.Generic;
@@ -8,47 +8,47 @@ namespace QHull
     public class QuickHull3D
     {
         /// <summary>
-        /// °´ÕÕË³Ê±ÕëÊä³ö¶¥µã  Õı·´ÃæÓÃ
+        /// æŒ‰ç…§é¡ºæ—¶é’ˆè¾“å‡ºé¡¶ç‚¹  æ­£åé¢ç”¨
         /// </summary>
         public const int c_ClockWise = 0x1;
 
         /// <summary>
-        /// ÔÚÊä³öµÄÊ±ºòÃæµÄ¶¥µãÊÇ´Ó1¿ªÊ¼µÄ
+        /// åœ¨è¾“å‡ºçš„æ—¶å€™é¢çš„é¡¶ç‚¹æ˜¯ä»1å¼€å§‹çš„
         /// </summary>
         public const int c_IndexFromOne = 0x2;
 
         /// <summary>
-        /// ÔÚÊä³öµÄÊ±ºòÃæµÄ¶¥µãÊÇ´Ó0¿ªÊ¼µÄ
+        /// åœ¨è¾“å‡ºçš„æ—¶å€™é¢çš„é¡¶ç‚¹æ˜¯ä»0å¼€å§‹çš„
         /// </summary>
         public const int c_IndexFromZero = 0x4;
 
         /// <summary>
-        /// ÔÚÊä³öµÄÊ±ºòÃæµÄ¶¥µãÊÇÏà¶ÔÓÚÊäÈë¶¥µãµÄ±àºÅ
+        /// åœ¨è¾“å‡ºçš„æ—¶å€™é¢çš„é¡¶ç‚¹æ˜¯ç›¸å¯¹äºè¾“å…¥é¡¶ç‚¹çš„ç¼–å·
         /// </summary>
         public const int c_PointRelative = 0x8;
 
         /// <summary>
-        /// ¸ù¾İÊäÈëµãÊı¾İ×Ô¶¯¼ÆËã¾àÀë¹«²î
+        /// æ ¹æ®è¾“å…¥ç‚¹æ•°æ®è‡ªåŠ¨è®¡ç®—è·ç¦»å…¬å·®
         /// </summary>
         public const float c_AutomaticTolerance = -1;
 
         /// <summary>
-        /// ¾«×¼¶ÈÎó²î
+        /// ç²¾å‡†åº¦è¯¯å·®
         /// </summary>
         private const float c_FloatPrec = 0.00000001f;
 
         /// <summary>
-        /// Òª±»²éÕÒµÄindex
+        /// è¦è¢«æŸ¥æ‰¾çš„index
         /// </summary>
         protected int findIndex = -1;
 
         /// <summary>
-        /// ÈıÊÓÍ¼AABB×î³¤µÄÄÇÌõ
+        /// ä¸‰è§†å›¾AABBæœ€é•¿çš„é‚£æ¡
         /// </summary>
         protected float charLength;
 
         /// <summary>
-        /// ÊÇ·ñÊä³öDebug
+        /// æ˜¯å¦è¾“å‡ºDebug
         /// </summary>
         public bool IsDebug { get; set; } = false;
 
@@ -72,25 +72,25 @@ namespace QHull
         protected int numPoints;
 
         /// <summary>
-        /// ¾àÀë¹«²î
+        /// è·ç¦»å…¬å·®
         /// </summary>
         protected float explicitTolerance = c_AutomaticTolerance;
 
         /// <summary>
-        /// ¾àÀë¹«²î
+        /// è·ç¦»å…¬å·®
         /// </summary>
         protected float tolerance;
 
 
         /// <summary>
-        /// ·µ»Ø¼ÆËãÍ¹¿ÇµÄ¾àÀë¹«²î
-        /// ¾àÀëÓÃÓÚÈ·¶¨Á½¸öÃæÖ®¼äµÄÍ¹Æğ,²¢ÇÒµãÃ÷ÏÔÎ»ÓÚÃæÆ½ÃæµÄÉÏ·½»òÕßÏÂ·½
-        /// ´æÔÚ²»¾«×¼ĞÔ
+        /// è¿”å›è®¡ç®—å‡¸å£³çš„è·ç¦»å…¬å·®
+        /// è·ç¦»ç”¨äºç¡®å®šä¸¤ä¸ªé¢ä¹‹é—´çš„å‡¸èµ·,å¹¶ä¸”ç‚¹æ˜æ˜¾ä½äºé¢å¹³é¢çš„ä¸Šæ–¹æˆ–è€…ä¸‹æ–¹
+        /// å­˜åœ¨ä¸ç²¾å‡†æ€§
         /// </summary>
         public float DistanceTolerance => tolerance;
 
         /// <summary>
-        /// ¾àÀë¹«²î
+        /// è·ç¦»å…¬å·®
         /// </summary>
         public float ExplicitDistanceTolerance
         {
@@ -102,7 +102,7 @@ namespace QHull
         private bool isShow = true;
 
         /// <summary>
-        /// °Ñµã¼Óµ½ÃæÀïÃæ
+        /// æŠŠç‚¹åŠ åˆ°é¢é‡Œé¢
         /// </summary>
         /// <param name="vtx"></param>
         /// <param name="face"></param>
@@ -123,7 +123,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// ÒÆ³ıÃæÖĞµÄµã
+        /// ç§»é™¤é¢ä¸­çš„ç‚¹
         /// </summary>
         /// <param name="vtx"></param>
         /// <param name="face"></param>
@@ -145,7 +145,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// °ÑÃæÖĞµÄµãÈ«²¿ÒÆ³ı
+        /// æŠŠé¢ä¸­çš„ç‚¹å…¨éƒ¨ç§»é™¤
         /// </summary>
         /// <param name="face"></param>
         /// <returns></returns>
@@ -170,14 +170,14 @@ namespace QHull
         }
 
         /// <summary>
-        /// ¿ÕµÄ¹¹Ôìº¯Êı
+        /// ç©ºçš„æ„é€ å‡½æ•°
         /// </summary>
         public QuickHull3D()
         {
         }
 
         /// <summary>
-        /// ÓÃfloat[]->xyz½øĞĞ¹¹Ôì
+        /// ç”¨float[]->xyzè¿›è¡Œæ„é€ 
         /// </summary>
         /// <param name="coords"></param>
         public QuickHull3D(float[] coords)
@@ -186,7 +186,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// ÓÃÎ»ÖÃµã½øĞĞ¹¹Ôì
+        /// ç”¨ä½ç½®ç‚¹è¿›è¡Œæ„é€ 
         /// </summary>
         /// <param name="points"></param>
         public QuickHull3D(Vector3[] points)
@@ -195,8 +195,8 @@ namespace QHull
         }
 
         /// <summary>
-        /// ¸ù¾İÊäÈëµÄÍ·Î²µã±©Á¦²éÕÒ±ß
-        /// Õı³£×ßSetHullÁ÷³Ì,ËùÒÔ²»³£ÓÃ
+        /// æ ¹æ®è¾“å…¥çš„å¤´å°¾ç‚¹æš´åŠ›æŸ¥æ‰¾è¾¹
+        /// æ­£å¸¸èµ°SetHullæµç¨‹,æ‰€ä»¥ä¸å¸¸ç”¨
         /// </summary>
         /// <param name="tail"></param>
         /// <param name="head"></param>
@@ -216,7 +216,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// ÉèÖÃÍ¹°ü
+        /// è®¾ç½®å‡¸åŒ…
         /// </summary>
         /// <param name="coords"></param>
         /// <param name="nump"></param>
@@ -247,7 +247,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// ¸ù¾İÊäÈëµÄfloat[]->×ª»»ÎªxyzµãÉú³ÉÍ¹°ü
+        /// æ ¹æ®è¾“å…¥çš„float[]->è½¬æ¢ä¸ºxyzç‚¹ç”Ÿæˆå‡¸åŒ…
         /// </summary>
         /// <param name="coords"></param>
         public void Build(float[] coords)
@@ -256,7 +256,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// ¸ù¾İÊäÈëµÄfloat[]->×ª»»ÎªxyzµãÉú³ÉÍ¹°ü
+        /// æ ¹æ®è¾“å…¥çš„float[]->è½¬æ¢ä¸ºxyzç‚¹ç”Ÿæˆå‡¸åŒ…
         /// </summary>
         /// <param name="coords"></param>
         /// <param name="nump"></param>
@@ -280,7 +280,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// ¸ù¾İÊäÈëµÄµãÉú³ÉÍ¹°ü
+        /// æ ¹æ®è¾“å…¥çš„ç‚¹ç”Ÿæˆå‡¸åŒ…
         /// </summary>
         /// <param name="points"></param>
         public void Build(Vector3[] points)
@@ -289,7 +289,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// ¸ù¾İÊäÈëµÄµãÉú³ÉÍ¹°ü
+        /// æ ¹æ®è¾“å…¥çš„ç‚¹ç”Ÿæˆå‡¸åŒ…
         /// </summary>
         /// <param name="points"></param>
         /// <param name="nump"></param>
@@ -313,7 +313,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// Èı½Ç»¯
+        /// ä¸‰è§’åŒ–
         /// </summary>
         public void Triangulate()
         {
@@ -335,7 +335,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// ³õÊ¼»¯¿ÕÊı¾İ
+        /// åˆå§‹åŒ–ç©ºæ•°æ®
         /// </summary>
         /// <param name="nump"></param>
         protected void InitBuffers(int nump)
@@ -364,7 +364,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// °ÑµãÊı¾İÉèÖÃ½øÈ¥
+        /// æŠŠç‚¹æ•°æ®è®¾ç½®è¿›å»
         /// </summary>
         /// <param name="coords"></param>
         /// <param name="nump"></param>
@@ -381,7 +381,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// °ÑµãÉèÖÃ½øÈ¥
+        /// æŠŠç‚¹è®¾ç½®è¿›å»
         /// </summary>
         /// <param name="pnts"></param>
         /// <param name="nump"></param>
@@ -396,7 +396,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// ¼ÆËãAABB×î´ó×îĞ¡Öµ µÃ³ö×î´óµÄ±ß
+        /// è®¡ç®—AABBæœ€å¤§æœ€å°å€¼ å¾—å‡ºæœ€å¤§çš„è¾¹
         /// </summary>
         protected void ComputeMaxAndMin()
         {
@@ -462,7 +462,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// ¹¹½¨³õÊ¼µÄÍ¹¿Ç
+        /// æ„å»ºåˆå§‹çš„å‡¸å£³
         /// </summary>
         protected void CreateInitialSimplex()
         {
@@ -487,11 +487,11 @@ namespace QHull
 
             Vertex[] vtx = new Vertex[4];
 
-            //°ÑÇ°ÃæÁ½¸ö¶¥µãÉèÖÃÎª×î´óÎ¬¶ÈµÄ¶¥µã
+            //æŠŠå‰é¢ä¸¤ä¸ªé¡¶ç‚¹è®¾ç½®ä¸ºæœ€å¤§ç»´åº¦çš„é¡¶ç‚¹
             vtx[0] = maxVtxs[imax];
             vtx[1] = minVtxs[imax];
 
-            //Èı¸ö¶¥µãµÄ¾àÀëÎªÖ±Ïß×îÔ¶µÄ¾àÀë
+            //ä¸‰ä¸ªé¡¶ç‚¹çš„è·ç¦»ä¸ºç›´çº¿æœ€è¿œçš„è·ç¦»
             Vector3 u01 = new Vector3();
             Vector3 diff02 = new Vector3();
             Vector3 nrml = new Vector3();
@@ -504,7 +504,7 @@ namespace QHull
                 diff02 = (pointBuffer[i].pnt - vtx[0].pnt);
                 xprod = Vector3.Cross(u01, diff02);
                 float lenSqr = xprod.sqrMagnitude;
-                // ¼ì²âÂ©µÄµã
+                // æ£€æµ‹æ¼çš„ç‚¹
                 if (lenSqr > maxSqr &&
                     pointBuffer[i] != vtx[0] &&
                     pointBuffer[i] != vtx[1])
@@ -523,10 +523,10 @@ namespace QHull
 
             nrml.Normalize();
 
-            //ÖØĞÂ¼ÆËãnrmlÒÔÈ·±£Ëü¶ÔU01Õı³£,·ñÔòÔÚvtx[2]½Ó½üu01Ê±¿ÉÄÜ»á³ö´í
+            //é‡æ–°è®¡ç®—nrmlä»¥ç¡®ä¿å®ƒå¯¹U01æ­£å¸¸,å¦åˆ™åœ¨vtx[2]æ¥è¿‘u01æ—¶å¯èƒ½ä¼šå‡ºé”™
             Vector3 res = new Vector3();
 
-            res = Vector3.Dot(nrml, u01) * u01; // ÑØu01µÄnrmlµÄÑÓ³¤
+            res = Vector3.Dot(nrml, u01) * u01; // æ²¿u01çš„nrmlçš„å»¶é•¿
             nrml -= res;
             nrml.Normalize();
             float maxDist = 0;
@@ -534,7 +534,7 @@ namespace QHull
             for (int i = 0; i < numPoints; i++)
             {
                 float dist = Mathf.Abs(Vector3.Dot(pointBuffer[i].pnt, nrml) - d0);
-                // ¼ì²âÂ©µÄµã
+                // æ£€æµ‹æ¼çš„ç‚¹
                 if (dist > maxDist &&
                     pointBuffer[i] != vtx[0] &&
                     pointBuffer[i] != vtx[1] &&
@@ -621,13 +621,13 @@ namespace QHull
         }
 
         /// <summary>
-        /// µÃµ½¶¥µãµÄÊıÁ¿
+        /// å¾—åˆ°é¡¶ç‚¹çš„æ•°é‡
         /// </summary>
         public int NumVertices => numVertices;
 
 
         /// <summary>
-        /// µÃµ½¶¥µã
+        /// å¾—åˆ°é¡¶ç‚¹
         /// </summary>
         /// <returns></returns>
         public Vector3[] GetVertices()
@@ -643,7 +643,7 @@ namespace QHull
 
 
         /// <summary>
-        /// µÃµ½ x y z ×é³ÉµÄ¶¥µã,²¢ÇÒ·µ»Ø¶¥µã³¤¶È
+        /// å¾—åˆ° x y z ç»„æˆçš„é¡¶ç‚¹,å¹¶ä¸”è¿”å›é¡¶ç‚¹é•¿åº¦
         /// </summary>
         /// <param name="coords"></param>
         /// <returns></returns>
@@ -662,7 +662,7 @@ namespace QHull
 
 
         /// <summary>
-        /// µÃµ½¶¥µãË÷ÒıÊı×é
+        /// å¾—åˆ°é¡¶ç‚¹ç´¢å¼•æ•°ç»„
         /// </summary>
         /// <returns></returns>
         public int[] GetVertexPointIndices()
@@ -677,18 +677,18 @@ namespace QHull
         }
 
         /// <summary>
-        /// ÃæÆ¬µÄÊıÁ¿
+        /// é¢ç‰‡çš„æ•°é‡
         /// </summary>
         /// <returns></returns>
         public int NumFaces=> faces.Count;
 
         /// <summary>
-        /// ·µ»ØÓë´ËÍâ¿ÇÏà¹âÁªµÄÃæ
-        /// Ã¿Ò»¸öÃæ¶¼ÓĞÒ»¸öÕûÊıÊı×é±íÊ¾,¸ÃÊı×é¸ø³ö¶¥µãµÄË÷Òı
-        /// ÕâĞ©Ë÷Òı¶¼ÊÇ±àºÅ Ïà¶ÔÓÚ¶¥µã,»ùÓÚ0,ÄæÊ±ÕëÅÅÁĞ
-        /// ¸ü¶à¿ØÖÆÔÚË÷Òı¸ñÊ½ÉÏ ¿ÉÒÔÊ¹ÓÃ GetFaces(int) ºÍ GetFaces(indexflags)
+        /// è¿”å›ä¸æ­¤å¤–å£³ç›¸å…‰è”çš„é¢
+        /// æ¯ä¸€ä¸ªé¢éƒ½æœ‰ä¸€ä¸ªæ•´æ•°æ•°ç»„è¡¨ç¤º,è¯¥æ•°ç»„ç»™å‡ºé¡¶ç‚¹çš„ç´¢å¼•
+        /// è¿™äº›ç´¢å¼•éƒ½æ˜¯ç¼–å· ç›¸å¯¹äºé¡¶ç‚¹,åŸºäº0,é€†æ—¶é’ˆæ’åˆ—
+        /// æ›´å¤šæ§åˆ¶åœ¨ç´¢å¼•æ ¼å¼ä¸Š å¯ä»¥ä½¿ç”¨ GetFaces(int) å’Œ GetFaces(indexflags)
         ///
-        /// ·µ»ØÕûÊıÊı×éµÄÊı×é ¸ø³öµÄ¶¥µãÃ¿¸öÃæµÄË÷Òı
+        /// è¿”å›æ•´æ•°æ•°ç»„çš„æ•°ç»„ ç»™å‡ºçš„é¡¶ç‚¹æ¯ä¸ªé¢çš„ç´¢å¼•
         /// </summary>
         /// <returns></returns>
         public int[][] GetFaces()
@@ -698,7 +698,7 @@ namespace QHull
 
 
         /// <summary>
-        /// ÓÃindexFlags Ë³ÄæÊ±Õë µÃµ½Faces
+        /// ç”¨indexFlags é¡ºé€†æ—¶é’ˆ å¾—åˆ°Faces
         /// </summary>
         /// <param name="indexFlags"></param>
         /// <returns></returns>
@@ -717,7 +717,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// µÃµ½ÃæÆ¬µÄË÷Òı
+        /// å¾—åˆ°é¢ç‰‡çš„ç´¢å¼•
         /// </summary>
         /// <param name="indices"></param>
         /// <param name="face"></param>
@@ -748,7 +748,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// ´¦ÀíÃ»ÓĞ½â¾ö(¹Â¶ù)µÄµã
+        /// å¤„ç†æ²¡æœ‰è§£å†³(å­¤å„¿)çš„ç‚¹
         /// </summary>
         /// <param name="newFaces"></param>
         protected void ResolveUnclaimedPoints(FaceList newFaces)
@@ -800,7 +800,7 @@ namespace QHull
 
 
         /// <summary>
-        /// É¾³ıfaceÉÏ°üº¬faceµÄµã
+        /// åˆ é™¤faceä¸ŠåŒ…å«faceçš„ç‚¹
         /// </summary>
         /// <param name="face"></param>
         /// <param name="absorbingFace"></param>
@@ -834,17 +834,17 @@ namespace QHull
         }
 
         /// <summary>
-        /// ·ÇÍ¹°ü´óµÄµã
+        /// éå‡¸åŒ…å¤§çš„ç‚¹
         /// </summary>
         private const int c_NoneconvexWrtLargerFace = 1;
 
         /// <summary>
-        /// ·ÇÍ¹°ü½ÏĞ¡µÄµã
+        /// éå‡¸åŒ…è¾ƒå°çš„ç‚¹
         /// </summary>
         private const int c_NoneConvex = 2;
 
         /// <summary>
-        /// µ½¶Ô±ßµÄ¾àÀë
+        /// åˆ°å¯¹è¾¹çš„è·ç¦»
         /// </summary>
         /// <param name="he"></param>
         /// <returns></returns>
@@ -854,7 +854,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// ºÏ²¢ÏàÁÚµÄÃæÆ¬
+        /// åˆå¹¶ç›¸é‚»çš„é¢ç‰‡
         /// </summary>
         /// <param name="face"></param>
         /// <param name="mergeType"></param>
@@ -870,7 +870,7 @@ namespace QHull
                 float dist1, dist2;
                 if (mergeType == c_NoneConvex)
                 {
-                    //Èç¹ûÊÇ·ÇÍ¹ÆğµÄÃæ,Ôò½øĞĞºÏ²¢
+                    //å¦‚æœæ˜¯éå‡¸èµ·çš„é¢,åˆ™è¿›è¡Œåˆå¹¶
                     if (OppFaceDistance(hedge) > -tolerance ||
                         OppFaceDistance(hedge.opposite) > -tolerance)
                     {
@@ -879,8 +879,8 @@ namespace QHull
                 }
                 else // mergeType == c_NoneconvexWrtLargerFace
                 {
-                    //Èç¹ûÃæÓë½Ï´óµÄÃæÆ½ĞĞ»ò·ÇÍ¹Ãæ,ÔòºÏ²¢Ãæ
-                    //·ñÔòÖ»Ğè½«Ãæ±ê¼ÇÎª·ÇÍ¹Ãæ,ÔÚµÚ¶ş±é½øĞĞ´¦Àí
+                    //å¦‚æœé¢ä¸è¾ƒå¤§çš„é¢å¹³è¡Œæˆ–éå‡¸é¢,åˆ™åˆå¹¶é¢
+                    //å¦åˆ™åªéœ€å°†é¢æ ‡è®°ä¸ºéå‡¸é¢,åœ¨ç¬¬äºŒéè¿›è¡Œå¤„ç†
                     if (face.area > oppFace.area)
                     {
                         if ((dist1 = OppFaceDistance(hedge)) > -tolerance)
@@ -941,7 +941,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// ¼ÆËãµØÆ½Ïß
+        /// è®¡ç®—åœ°å¹³çº¿
         /// </summary>
         /// <param name="eyePnt"></param>
         /// <param name="edge0"></param>
@@ -1000,7 +1000,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// Ìí¼ÓÏàÁÚµÄÃæ
+        /// æ·»åŠ ç›¸é‚»çš„é¢
         /// </summary>
         /// <param name="eyeVtx"></param>
         /// <param name="he"></param>
@@ -1017,7 +1017,7 @@ namespace QHull
 
 
         /// <summary>
-        /// Ìí¼ÓĞÂµÄÃæ
+        /// æ·»åŠ æ–°çš„é¢
         /// </summary>
         /// <param name="newFaces"></param>
         /// <param name="eyeVtx"></param>
@@ -1054,7 +1054,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// Ìí¼ÓÏÂ¸öµã
+        /// æ·»åŠ ä¸‹ä¸ªç‚¹
         /// </summary>
         /// <returns></returns>
         protected Vertex NextPointToAdd()
@@ -1085,7 +1085,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// Ìí¼Óµãµ½Í¹¿ÇÀïÃæ
+        /// æ·»åŠ ç‚¹åˆ°å‡¸å£³é‡Œé¢
         /// </summary>
         /// <param name="eyeVtx"></param>
         protected void AddPointToHull(Vertex eyeVtx)
@@ -1106,7 +1106,7 @@ namespace QHull
             AddNewFaces(newFaces, eyeVtx, horizon);
 
 
-            //µÚÒ»¸öºÏ²¢¹ı³Ì  ºÏ²¢½Ï´óµÄ·ÇÍ¹ÆğµÄÃæ
+            //ç¬¬ä¸€ä¸ªåˆå¹¶è¿‡ç¨‹  åˆå¹¶è¾ƒå¤§çš„éå‡¸èµ·çš„é¢
             for (Face face = newFaces.First; face != null; face = face.next)
             {
                 if (face.mark == Face.c_Visible)
@@ -1116,7 +1116,7 @@ namespace QHull
                 }
             }
 
-            //µÚ¶ş¸öºÏ²¢¹ı³Ì ºÏ²¢·ÇÍ¹ÃæµÄÃæ,ÓëÈÎÒ»ÃæÏà¹Ø
+            //ç¬¬äºŒä¸ªåˆå¹¶è¿‡ç¨‹ åˆå¹¶éå‡¸é¢çš„é¢,ä¸ä»»ä¸€é¢ç›¸å…³
             for (Face face = newFaces.First; face != null; face = face.next)
             {
                 if (face.mark == Face.c_NoneConvex)
@@ -1130,7 +1130,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// ½¨Á¢Í¹¿Ç
+        /// å»ºç«‹å‡¸å£³
         /// </summary>
         protected void BuildHull()
         {
@@ -1156,7 +1156,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// ±ê¼ÇfaceÉÏµÄ¶¥µã
+        /// æ ‡è®°faceä¸Šçš„é¡¶ç‚¹
         /// </summary>
         /// <param name="face"></param>
         /// <param name="mark"></param>
@@ -1172,7 +1172,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// ÖØĞÂ½¨Á¢faceºÍ¶¥µãµÄË÷Òı
+        /// é‡æ–°å»ºç«‹faceå’Œé¡¶ç‚¹çš„ç´¢å¼•
         /// </summary>
         protected void ReindexFacesAndVertices()
         {
@@ -1181,7 +1181,7 @@ namespace QHull
                 pointBuffer[i].index = -1;
             }
 
-            //É¾³ı·Ç»î¶¯Ãæ²¢±ê¼Ç»î¶¯¶¥µã
+            //åˆ é™¤éæ´»åŠ¨é¢å¹¶æ ‡è®°æ´»åŠ¨é¡¶ç‚¹
             numFaces = 0;
 
             for (int i = faces.Count - 1; i >= 0; i--)
@@ -1198,7 +1198,7 @@ namespace QHull
                 }
             }
 
-            //ÖØĞÂË÷Òı¶¥µã
+            //é‡æ–°ç´¢å¼•é¡¶ç‚¹
             numVertices = 0;
             for (int i = 0; i < numPoints; i++)
             {

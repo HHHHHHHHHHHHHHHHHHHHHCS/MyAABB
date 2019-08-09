@@ -1,81 +1,81 @@
-namespace QHull
+ï»¿namespace QHull
 {
     using UnityEngine;
     using System;
 
     /// <summary>
-    /// Ãæ
+    /// é¢
     /// </summary>
     public class Face
     {
         /// <summary>
-        /// µÚ0Ìõ±ß
+        /// ç¬¬0æ¡è¾¹
         /// </summary>
         public HalfEdge he0;
 
         /// <summary>
-        /// ·¨Ïß
+        /// æ³•çº¿
         /// </summary>
         public Vector3 normal;
 
         /// <summary>
-        /// Ãæ»ı
+        /// é¢ç§¯
         /// </summary>
         public float area;
 
         /// <summary>
-        /// ÖĞĞÄµã
+        /// ä¸­å¿ƒç‚¹
         /// </summary>
         public Vector3 centroid;
 
         /// <summary>
-        /// Ãæ°åÆ«ÒÆ
+        /// é¢æ¿åç§»
         /// </summary>
         public float planeOffset;
 
         /// <summary>
-        /// faceµÄIndex
+        /// faceçš„Index
         /// </summary>
         public int index;
 
         /// <summary>
-        /// ÃæÉÏ¶¥µãµÄÊıÁ¿
+        /// é¢ä¸Šé¡¶ç‚¹çš„æ•°é‡
         /// </summary>
         public int numVerts;
 
         /// <summary>
-        /// Á´±íÏÂÒ»¸öÃæÆ¬
+        /// é“¾è¡¨ä¸‹ä¸€ä¸ªé¢ç‰‡
         /// </summary>
         public Face next;
 
 
         /// <summary>
-        /// ×´Ì¬:¿É¼ûµÄ
+        /// çŠ¶æ€:å¯è§çš„
         /// </summary>
         public const int c_Visible = 1;
 
         /// <summary>
-        /// ×´Ì¬:²»ÊÇÍ¹³öµÄĞÎ×´
+        /// çŠ¶æ€:ä¸æ˜¯å‡¸å‡ºçš„å½¢çŠ¶
         /// </summary>
         public const int c_NoneConvex = 2;
 
         /// <summary>
-        /// ×´Ì¬:É¾³ıµÄ
+        /// çŠ¶æ€:åˆ é™¤çš„
         /// </summary>
         public const int c_Deleted = 3;
 
         /// <summary>
-        /// µ±Ç°µÄ×´Ì¬
+        /// å½“å‰çš„çŠ¶æ€
         /// </summary>
         public int mark = c_Visible;
 
         /// <summary>
-        /// ÍâÃæµÄ¶¥µã
+        /// å¤–é¢çš„é¡¶ç‚¹
         /// </summary>
         public Vertex outside;
 
         /// <summary>
-        /// ¼ÆËãÖĞĞÄµã
+        /// è®¡ç®—ä¸­å¿ƒç‚¹
         /// </summary>
         /// <param name="centroid"></param>
         public void ComputeCentroid()
@@ -92,7 +92,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// ¼ÆËã·¨Ïß ¸ù¾İ×îĞ¡µÄÃæ»ı
+        /// è®¡ç®—æ³•çº¿ æ ¹æ®æœ€å°çš„é¢ç§¯
         /// </summary>
         /// <param name="normal"></param>
         /// <param name="minArea"></param>
@@ -102,8 +102,8 @@ namespace QHull
 
             if (area < minArea)
             {
-                //ÓÃÀ´´¦ÀíËÄ±ßĞÎÒÔÉÏµÄÊ±ºò,²»ÔÙÒ»¸öÆ½ÃæµÄ·¨Ïß
-                //Í¨¹ıÉ¾³ı×î³¤µÄ±ß À´ÈÃ·¨Ïß¸ü×¼È·
+                //ç”¨æ¥å¤„ç†å››è¾¹å½¢ä»¥ä¸Šçš„æ—¶å€™,ä¸å†ä¸€ä¸ªå¹³é¢çš„æ³•çº¿
+                //é€šè¿‡åˆ é™¤æœ€é•¿çš„è¾¹ æ¥è®©æ³•çº¿æ›´å‡†ç¡®
 
                 HalfEdge hedgeMax = null;
                 float lenSqrMax = 0;
@@ -131,7 +131,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// ¼ÆËã·¨Ïß
+        /// è®¡ç®—æ³•çº¿
         /// </summary>
         public void ComputeNormal()
         {
@@ -162,13 +162,13 @@ namespace QHull
             }
 
 
-            //²æ»ıµÄ¾ø¶ÔÖµµÄÒ»°ë ÊÇÃæ»ı
+            //å‰ç§¯çš„ç»å¯¹å€¼çš„ä¸€åŠ æ˜¯é¢ç§¯
             area = normal.magnitude;
             normal /= area;
         }
 
         /// <summary>
-        /// ¼ÆËã·¨ÏßºÍÖĞĞÄµã
+        /// è®¡ç®—æ³•çº¿å’Œä¸­å¿ƒç‚¹
         /// </summary>
         private void ComputeNormalAndCentroid()
         {
@@ -191,7 +191,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// ¼ÆËã·¨ÏßºÍÖĞĞÄµã
+        /// è®¡ç®—æ³•çº¿å’Œä¸­å¿ƒç‚¹
         /// </summary>
         private void ComputeNormalAndCentroid(float minArea)
         {
@@ -201,7 +201,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// ´´½¨Èı½ÇÃæ
+        /// åˆ›å»ºä¸‰è§’é¢
         /// </summary>
         /// <param name="v0"></param>
         /// <param name="v1"></param>
@@ -213,7 +213,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// ´´½¨Èı½ÇÃæ
+        /// åˆ›å»ºä¸‰è§’é¢
         /// </summary>
         /// <param name="v0"></param>
         /// <param name="v1"></param>
@@ -237,13 +237,13 @@ namespace QHull
 
             face.he0 = he0;
 
-            //¼ÆËã·¨Ïß ÖĞĞÄµã  ºÍ Æ«ÒÆ
+            //è®¡ç®—æ³•çº¿ ä¸­å¿ƒç‚¹  å’Œ åç§»
             face.ComputeNormalAndCentroid(minArea);
             return face;
         }
 
         /// <summary>
-        /// ¸ù¾İ¶¨µÄ¶¥µãºÍË÷Òı ´´½¨ÃæÆ¬
+        /// æ ¹æ®å®šçš„é¡¶ç‚¹å’Œç´¢å¼• åˆ›å»ºé¢ç‰‡
         /// </summary>
         /// <param name="vtxArray"></param>
         /// <param name="indices"></param>
@@ -271,7 +271,7 @@ namespace QHull
             face.he0.Prev = (hePrev);
             hePrev.Next = (face.he0);
 
-            //¼ÆËã·¨Ïß ÖĞĞÄµã  ºÍ Æ«ÒÆ
+            //è®¡ç®—æ³•çº¿ ä¸­å¿ƒç‚¹  å’Œ åç§»
 
             face.ComputeNormalAndCentroid();
             return face;
@@ -285,7 +285,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// µÃµ½Ö¸¶¨Ë÷ÒıµÄ±ß
+        /// å¾—åˆ°æŒ‡å®šç´¢å¼•çš„è¾¹
         /// </summary>
         /// <param name="i"></param>
         /// <returns></returns>
@@ -308,14 +308,14 @@ namespace QHull
         }
 
         /// <summary>
-        /// µÃµ½µÚÒ»Ìõ±ß
+        /// å¾—åˆ°ç¬¬ä¸€æ¡è¾¹
         /// </summary>
         /// <returns></returns>
         public HalfEdge FirstEdge => he0;
 
 
         /// <summary>
-        /// ¸ù¾İÍ·Î²Á½¸öµã,µÃµ½±ß
+        /// æ ¹æ®å¤´å°¾ä¸¤ä¸ªç‚¹,å¾—åˆ°è¾¹
         /// </summary>
         /// <param name="vt"></param>
         /// <param name="vh"></param>
@@ -337,7 +337,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// µãµ½ÃæÆ¬µÄ¾àÀë
+        /// ç‚¹åˆ°é¢ç‰‡çš„è·ç¦»
         /// </summary>
         /// <param name="p"></param>
         /// <returns></returns>
@@ -347,22 +347,22 @@ namespace QHull
         }
 
         /// <summary>
-        /// ·¨Ïß
+        /// æ³•çº¿
         /// </summary>
         public Vector3 Normal => normal;
 
         /// <summary>
-        /// ÖĞĞÄµã
+        /// ä¸­å¿ƒç‚¹
         /// </summary>
         public Vector3 Centroid => centroid;
 
         /// <summary>
-        /// ¶¥µãµÄÊıÁ¿
+        /// é¡¶ç‚¹çš„æ•°é‡
         /// </summary>
         public int NumVertices => numVerts;
 
         /// <summary>
-        /// Êä³öĞÅÏ¢
+        /// è¾“å‡ºä¿¡æ¯
         /// </summary>
         /// <returns></returns>
         public string GetVertexString()
@@ -392,7 +392,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// µÃµ½¶¥µãË÷Òı
+        /// å¾—åˆ°é¡¶ç‚¹ç´¢å¼•
         /// </summary>
         /// <param name="idxs"></param>
         public void GetVertexIndices(int[] idxs)
@@ -407,7 +407,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// Á¬½ÓÁ½Ìõ±ß
+        /// è¿æ¥ä¸¤æ¡è¾¹
         /// </summary>
         /// <param name="hedgePrev"></param>
         /// <param name="hedge"></param>
@@ -418,7 +418,7 @@ namespace QHull
 
             if (hedgePrev.OppositeFace == hedge.OppositeFace)
             {
-                //È»ºóÈ¥µôÒ»¸ö¶àÓàµÄ±ßÔµ
+                //ç„¶åå»æ‰ä¸€ä¸ªå¤šä½™çš„è¾¹ç¼˜
                 Face oppFace = hedge.OppositeFace;
                 HalfEdge hedgeOpp;
 
@@ -429,7 +429,7 @@ namespace QHull
 
                 if (oppFace.NumVertices == 3)
                 {
-                    //ÕâÑù¾Í¿ÉÒÔÍêÈ«¸²¸ÇÁË
+                    //è¿™æ ·å°±å¯ä»¥å®Œå…¨è¦†ç›–äº†
                     hedgeOpp = hedge.Opposite.prev.Opposite;
 
                     oppFace.mark = c_Deleted;
@@ -453,7 +453,7 @@ namespace QHull
 
                 hedge.Opposite = (hedgeOpp);
 
-                //Ãæ±»ĞŞ¸ÄÁË ËùÒÔĞèÒªÖØĞÂ¼ÆËã
+                //é¢è¢«ä¿®æ”¹äº† æ‰€ä»¥éœ€è¦é‡æ–°è®¡ç®—
                 oppFace.ComputeNormalAndCentroid();
             }
             else
@@ -467,11 +467,11 @@ namespace QHull
 
 
         /// <summary>
-        /// ¼ì²éÊÇ·ñÊÇÒ»¸öÆ½Ãæ
+        /// æ£€æŸ¥æ˜¯å¦æ˜¯ä¸€ä¸ªå¹³é¢
         /// </summary>
         private void CheckConsistency()
         {
-            //ÔÚÃæÉÏ×ö¼ì²é
+            //åœ¨é¢ä¸Šåšæ£€æŸ¥
             HalfEdge hedge = he0;
             float maxd = 0;
             int numv = 0;
@@ -540,7 +540,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// ºÏ²¢ÏàÁÚµÄÃæ
+        /// åˆå¹¶ç›¸é‚»çš„é¢
         /// </summary>
         /// <param name="hedgeAdj"></param>
         /// <param name="discarded"></param>
@@ -584,7 +584,7 @@ namespace QHull
                 he0 = hedgeAdjNext;
             }
 
-            //´¦Àí±ßµÄÍ·½Úµã
+            //å¤„ç†è¾¹çš„å¤´èŠ‚ç‚¹
             Face discardedFace;
 
             discardedFace = ConnectHalfEdges(hedgeOppPrev, hedgeAdjNext);
@@ -593,7 +593,7 @@ namespace QHull
                 discarded[numDiscarded++] = discardedFace;
             }
 
-            //´¦Àí±ßµÄÎ²½Úµã
+            //å¤„ç†è¾¹çš„å°¾èŠ‚ç‚¹
             discardedFace = ConnectHalfEdges(hedgeAdjPrev, hedgeOppNext);
             if (discardedFace != null)
             {
@@ -607,14 +607,14 @@ namespace QHull
         }
 
         /// <summary>
-        /// Í¨¹ıÁ½Ìõ±ß  ¼ÆËãÆ½·½Ãæ»ı
+        /// é€šè¿‡ä¸¤æ¡è¾¹  è®¡ç®—å¹³æ–¹é¢ç§¯
         /// </summary>
         /// <param name="hedge0"></param>
         /// <param name="hedge1"></param>
         /// <returns></returns>
         private float AreaSquared(HalfEdge hedge0, HalfEdge hedge1)
         {
-            //·µ»ØÁ½Ìõ±ß²úÉúµÄÃæ»ı
+            //è¿”å›ä¸¤æ¡è¾¹äº§ç”Ÿçš„é¢ç§¯
             Vector3 p0 = hedge0.Tail.pnt;
             Vector3 p1 = hedge0.Head.pnt;
             Vector3 p2 = hedge1.Head.pnt;
@@ -627,7 +627,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// Èı½Ç»¯
+        /// ä¸‰è§’åŒ–
         /// </summary>
         /// <param name="newFaces"></param>
         /// <param name="minArea"></param>

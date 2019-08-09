@@ -43,11 +43,11 @@ public class AABB
     /// <param name="eps"></param>
     public void RemoveRepeatedPoint(List<Vector3> eps)
     {
-        List<int> removIndexs = new List<int>();
+        List<int> removeIndexs = new List<int>();
         Vector3 v3 = Vector3.zero;
         for (int i = eps.Count -1; i >= 0; i--)
         {
-            if (removIndexs.Contains(i))
+            if (removeIndexs.Contains(i))
             {
                 continue;
             }
@@ -58,11 +58,17 @@ public class AABB
                 v3.x = Mathf.Abs(oriPoint.x - eps[j].x);
                 v3.y = Mathf.Abs(oriPoint.y - eps[j].y);
                 v3.z = Mathf.Abs(oriPoint.z - eps[j].z);
-                if ((v3.x + v3.y + v3.z) <= 0.0001f)
+                if ((v3.x + v3.y + v3.z) <= 0.001f)
                 {
-                    removIndexs.Add(j);
+                    removeIndexs.Add(j);
                 }
             }
+        }
+        //TODO:
+        removeIndexs.Sort((x,y)=>x<y?1:-1);
+        foreach (var item in removeIndexs)
+        {
+            eps.RemoveAt(item);
         }
     }
 }

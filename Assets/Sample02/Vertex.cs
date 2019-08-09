@@ -1,41 +1,41 @@
-
+ï»¿
 namespace QHull
 {
     using System;
     using UnityEngine;
 
     /// <summary>
-    /// µã
+    /// ç‚¹
     /// </summary>
     public class Vertex
     {
         /// <summary>
-        /// ¶¥µãµÄµãµÄÎ»ÖÃ
+        /// é¡¶ç‚¹çš„ç‚¹çš„ä½ç½®
         /// </summary>
         public Vector3 pnt;
 
         /// <summary>
-        /// ¶¥µãµÄË÷Òı
+        /// é¡¶ç‚¹çš„ç´¢å¼•
         /// </summary>
         public int index;
 
         /// <summary>
-        /// ¶¥µãList ÉÏÒ»¸öµã
+        /// é¡¶ç‚¹List ä¸Šä¸€ä¸ªç‚¹
         /// </summary>
         public Vertex prev;
 
         /// <summary>
-        /// ¶¥µãList ÏÂÒ»¸öµã
+        /// é¡¶ç‚¹List ä¸‹ä¸€ä¸ªç‚¹
         /// </summary>
         public Vertex next;
 
         /// <summary>
-        /// ¶¥µãËùÔÚµÄÃæ
+        /// é¡¶ç‚¹æ‰€åœ¨çš„é¢
         /// </summary>
         public Face face;
 
         /// <summary>
-        /// ¹¹ÔìÒ»¸ö¿ÕµÄµã
+        /// æ„é€ ä¸€ä¸ªç©ºçš„ç‚¹
         /// </summary>
         public Vertex()
         {
@@ -43,7 +43,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// µã
+        /// ç‚¹
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>

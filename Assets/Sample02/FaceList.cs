@@ -1,9 +1,9 @@
-namespace QHull
+ï»¿namespace QHull
 {
     using System;
 
     /// <summary>
-    /// ÃæµÄÁ´±í
+    /// é¢çš„é“¾è¡¨
     /// </summary>
     public class FaceList
     {
@@ -11,7 +11,7 @@ namespace QHull
         private Face tail;
 
         /// <summary>
-        /// Çå¿ÕÁ´±í
+        /// æ¸…ç©ºé“¾è¡¨
         /// </summary>
         public void Clear()
         {
@@ -20,7 +20,7 @@ namespace QHull
 
 
         /// <summary>
-        /// °ÑÃæÌí¼Óµ½Á´±íÀïÃæ
+        /// æŠŠé¢æ·»åŠ åˆ°é“¾è¡¨é‡Œé¢
         /// </summary>
         /// <param name="vtx"></param>
         public void Add(Face vtx)
@@ -39,14 +39,14 @@ namespace QHull
         }
 
         /// <summary>
-        /// ·µ»ØµÚÒ»¸öÃæ
+        /// è¿”å›ç¬¬ä¸€ä¸ªé¢
         /// </summary>
         /// <returns></returns>
         public Face First => head;
 
 
         /// <summary>
-        /// ÊÇ·ñÊÇ¿ÕµÄÁ´±í
+        /// æ˜¯å¦æ˜¯ç©ºçš„é“¾è¡¨
         /// </summary>
         public bool IsEmpty => head == null;
     }

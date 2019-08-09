@@ -1,4 +1,4 @@
-namespace QHull
+﻿namespace QHull
 {
     using System;
     using System.Collections;
@@ -34,6 +34,7 @@ namespace QHull
 
             Vector3[] vertices = hull.GetVertices();
             StringBuilder sb = new StringBuilder();
+            //todo:
             sb.Append($"Vertices:{vertices.Length}\n");
             for (int i = 0; i < vertices.Length; i++)
             {
@@ -48,9 +49,9 @@ namespace QHull
             List<int> faces = new List<int>();
             int[][] faceIndices = hull.GetFaces();
             sb.Append($"Faces:{vertices.Length}\n");
-            for (int i = 0; i < vertices.Length; i++)
+            for (int i = 0; i < faceIndices.Length; i++)
             {
-                for (int j = 0; i < faceIndices.Length && j < faceIndices[i].Length; j++)
+                for (int j = 0; j < faceIndices[i].Length; j++)
                 {
                     sb.Append($"{faceIndices[i][j]} ");
                     if (j >= 2)
@@ -105,7 +106,7 @@ namespace QHull
 
         public static Vector3 ToVector3(Vector3 p3d)
         {
-            return new Vector3((float)p3d.x, (float)p3d.y, (float)p3d.z);
+            return new Vector3((float) p3d.x, (float) p3d.y, (float) p3d.z);
         }
 
         public static Vector3[] ToVector3(Vector3[] p3ds)

@@ -1,9 +1,9 @@
-namespace QHull
+ï»¿namespace QHull
 {
     using System;
 
     /// <summary>
-    /// ¶¥µãµÄÁ´±í
+    /// é¡¶ç‚¹çš„é“¾è¡¨
     /// </summary>
     public class VertexList
     {
@@ -11,7 +11,7 @@ namespace QHull
         private Vertex tail;
 
         /// <summary>
-        /// Çå¿ÕÁ´±í
+        /// æ¸…ç©ºé“¾è¡¨
         /// </summary>
         public void Clear()
         {
@@ -19,7 +19,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// Ìí¼ÓÒ»¸ö¶¥µãµ½Á´±íµ½×îºó
+        /// æ·»åŠ ä¸€ä¸ªé¡¶ç‚¹åˆ°é“¾è¡¨åˆ°æœ€å
         /// </summary>
         /// <param name="vtx"></param>
         public void Add(Vertex vtx)
@@ -39,7 +39,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// Ìí¼ÓÒ»¸öÁ´±íµ½µ±Ç°Á´±íµÄÄ©Î²
+        /// æ·»åŠ ä¸€ä¸ªé“¾è¡¨åˆ°å½“å‰é“¾è¡¨çš„æœ«å°¾
         /// </summary>
         /// <param name="vtx"></param>
         public void AddRange(Vertex vtx)
@@ -63,7 +63,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// É¾³ıÒ»¸ö¶¥µã
+        /// åˆ é™¤ä¸€ä¸ªé¡¶ç‚¹
         /// </summary>
         /// <param name="vtx"></param>
         public void Delete(Vertex vtx)
@@ -88,7 +88,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// É¾³ıÁ½¸öÁ¬ĞøµÄ¶¥µã
+        /// åˆ é™¤ä¸¤ä¸ªè¿ç»­çš„é¡¶ç‚¹
         /// </summary>
         /// <param name="vtx1"></param>
         /// <param name="vtx2"></param>
@@ -114,7 +114,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// ÔÚÖ¸¶¨¶¥µãÇ°Ãæ²åÈëÒ»¸ö¶¥µã
+        /// åœ¨æŒ‡å®šé¡¶ç‚¹å‰é¢æ’å…¥ä¸€ä¸ªé¡¶ç‚¹
         /// </summary>
         /// <param name="vtx"></param>
         /// <param name="next"></param>
@@ -135,12 +135,12 @@ namespace QHull
         }
 
         /// <summary>
-        /// ·µ»ØÍ·¶¥µã
+        /// è¿”å›å¤´é¡¶ç‚¹
         /// </summary>
         public Vertex First => head;
 
         /// <summary>
-        /// ÊÇ·ñÊÇ¿ÕµÄÁ´±í  
+        /// æ˜¯å¦æ˜¯ç©ºçš„é“¾è¡¨  
         /// </summary>
         public bool IsEmpty => head == null;
     }

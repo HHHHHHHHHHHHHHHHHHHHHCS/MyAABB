@@ -1,41 +1,41 @@
-
+ï»¿
 namespace QHull
 {
     using System;
     using UnityEngine;
 
     /// <summary>
-    /// ±ß
+    /// è¾¹
     /// </summary>
     public class HalfEdge
     {
         /// <summary>
-        /// ±ß µÄÍ·µã
+        /// è¾¹ çš„å¤´ç‚¹
         /// </summary>
         public Vertex vertex;
 
         /// <summary>
-        /// ±ß ËùÊôÓÚµÄÃæ
+        /// è¾¹ æ‰€å±äºçš„é¢
         /// </summary>
         public Face face;
 
         /// <summary>
-        /// ÏÂÒ»Ìõ±ß
+        /// ä¸‹ä¸€æ¡è¾¹
         /// </summary>
         public HalfEdge next;
 
         /// <summary>
-        /// ÉÏÒ»Ìõ±ß
+        /// ä¸Šä¸€æ¡è¾¹
         /// </summary>
         public HalfEdge prev;
 
         /// <summary>
-        /// ¶ÔÃæµÄ±ß
+        /// å¯¹é¢çš„è¾¹
         /// </summary>
         public HalfEdge opposite;
 
         /// <summary>
-        /// ÓÃÍ·µãºÍÃæ ¹¹ÔìÒ»Ìõ±ß
+        /// ç”¨å¤´ç‚¹å’Œé¢ æ„é€ ä¸€æ¡è¾¹
         /// </summary>
         /// <param name="v"></param>
         /// <param name="f"></param>
@@ -46,14 +46,14 @@ namespace QHull
         }
 
         /// <summary>
-        /// ¿ÕµÄ¹¹Ôìº¯Êı ±ğÓÃ
+        /// ç©ºçš„æ„é€ å‡½æ•° åˆ«ç”¨
         /// </summary>
         public HalfEdge()
         {
         }
 
         /// <summary>
-        /// ÏÂÒ»Ìõ±ß
+        /// ä¸‹ä¸€æ¡è¾¹
         /// </summary>
         /// <param name="edge"></param>
         public HalfEdge Next
@@ -63,7 +63,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// ÉÏÒ»Ìõ±ß
+        /// ä¸Šä¸€æ¡è¾¹
         /// </summary>
         public HalfEdge Prev
         {
@@ -72,13 +72,13 @@ namespace QHull
         }
 
         /// <summary>
-        /// µ±Ç°±ßËùÊôÓÚµÄface
+        /// å½“å‰è¾¹æ‰€å±äºçš„face
         /// </summary>
         /// <returns></returns>
         public Face Face => face;
 
         /// <summary>
-        /// ¶ÔÃæµÄ±ß
+        /// å¯¹é¢çš„è¾¹
         /// </summary>
         public HalfEdge Opposite
         {
@@ -91,25 +91,25 @@ namespace QHull
         }
 
         /// <summary>
-        /// ±ßµÄÍ·µã
+        /// è¾¹çš„å¤´ç‚¹
         /// </summary>
         public Vertex Head => vertex;
 
         /// <summary>
-        /// ±ßµÄÎ²°Íµã  ¼´ÉÏÒ»Ìõ±ßµÄÎ²°Íµã
+        /// è¾¹çš„å°¾å·´ç‚¹  å³ä¸Šä¸€æ¡è¾¹çš„å°¾å·´ç‚¹
         /// </summary>
         /// <returns></returns>
         public Vertex Tail => prev?.vertex;
 
 
         /// <summary>
-        /// ¶Ô±ßµÄÃæ
+        /// å¯¹è¾¹çš„é¢
         /// </summary>
         /// <returns></returns>
         public Face OppositeFace => opposite?.face;
 
         /// <summary>
-        /// Êä³ö±ßĞÅÏ¢ °üº¬Í·µãºÍÎ²µã
+        /// è¾“å‡ºè¾¹ä¿¡æ¯ åŒ…å«å¤´ç‚¹å’Œå°¾ç‚¹
         /// </summary>
         /// <returns></returns>
         public string getVertexString()
@@ -127,7 +127,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// Í·µãµ½Î²µãµÄ¾àÀë
+        /// å¤´ç‚¹åˆ°å°¾ç‚¹çš„è·ç¦»
         /// </summary>
         /// <returns></returns>
         public float Length()
@@ -143,7 +143,7 @@ namespace QHull
         }
 
         /// <summary>
-        /// Í·µãµÄÎ²µãµÄÆ½·½¾àÀë
+        /// å¤´ç‚¹çš„å°¾ç‚¹çš„å¹³æ–¹è·ç¦»
         /// </summary>
         /// <returns></returns>
         public float LengthSquared()
