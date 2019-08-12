@@ -204,12 +204,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 692457407}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6becc2d8f15b4ef4384f19f7fbe1624a, type: 3}
+  m_Script: {fileID: 11500000, guid: 3fff4c604ee5ca647891ab827e41ce4e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mesh: {fileID: 922330191}
-  prefab: {fileID: 263239596651855087, guid: f3da7b32e9015a847bd96f8c3bbdd3b4, type: 3}
---- !u!1 &922330188
+  ori: {fileID: 947260879}
+  prefab: {fileID: 1733964651888503816, guid: b9a1f0569aeb25e4db134c1b44671c69, type: 3}
+--- !u!1 &947260877
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -217,23 +217,23 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 922330192}
-  - component: {fileID: 922330191}
-  - component: {fileID: 922330190}
+  - component: {fileID: 947260880}
+  - component: {fileID: 947260879}
+  - component: {fileID: 947260878}
   m_Layer: 0
-  m_Name: Item
+  m_Name: Sphere
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!23 &922330190
+--- !u!23 &947260878
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 922330188}
+  m_GameObject: {fileID: 947260877}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -264,21 +264,21 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!33 &922330191
+--- !u!33 &947260879
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 922330188}
-  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
---- !u!4 &922330192
+  m_GameObject: {fileID: 947260877}
+  m_Mesh: {fileID: 4300000, guid: cc652def9e3b66f43977796fc01da633, type: 3}
+--- !u!4 &947260880
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 922330188}
+  m_GameObject: {fileID: 947260877}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}

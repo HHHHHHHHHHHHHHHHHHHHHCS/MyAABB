@@ -1,4 +1,6 @@
-﻿namespace QHull
+﻿using System.Text;
+
+namespace QHull
 {
     using System;
     using System.Collections.Generic;
@@ -52,19 +54,72 @@
         /// </summary>
         public bool IsDebug { get; set; } = false;
 
+        /// <summary>
+        /// 是否输出最终Debug
+        /// </summary>
+        public bool IsEndDebug { get; set; } = true;
+
+        /// <summary>
+        /// log输出用
+        /// </summary>
+        private StringBuilder _sb;
+
+        /// <summary>
+        /// Log输出用
+        /// </summary>
+        public StringBuilder LogBuilder
+        {
+            get
+            {
+                if (_sb == null)
+                {
+                    _sb = new StringBuilder();
+                }
+
+                return _sb;
+            }
+        }
+
+
+        /// <summary>
+        /// 顶点数据
+        /// </summary>
         protected Vertex[] pointBuffer = new Vertex[0];
+
+        /// <summary>
+        /// 顶点索引
+        /// </summary>
         protected int[] vertexPointIndices = new int[0];
+
         private Face[] discardedFaces = new Face[3];
 
+        /// <summary>
+        /// 最大的顶点
+        /// </summary>
         private Vertex[] maxVtxs = new Vertex[3];
+
+        /// <summary>
+        /// 最小的顶点
+        /// </summary>
         private Vertex[] minVtxs = new Vertex[3];
 
+        /// <summary>
+        /// 面
+        /// </summary>
         protected List<Face> faces = new List<Face>(16);
 
         protected List<HalfEdge> horizon = new List<HalfEdge>(16);
 
         private FaceList newFaces = new FaceList();
+
+        /// <summary>
+        /// 被删除的链表
+        /// </summary>
         private VertexList unclaimed = new VertexList();
+
+        /// <summary>
+        /// 凸点链表
+        /// </summary>
         private VertexList claimed = new VertexList();
 
         protected int numVertices;
@@ -77,7 +132,7 @@
         protected float explicitTolerance = c_AutomaticTolerance;
 
         /// <summary>
-        /// 距离公差
+        /// 距离公差,用于处理相近点
         /// </summary>
         protected float tolerance;
 
@@ -123,7 +178,7 @@
         }
 
         /// <summary>
-        /// 移除面中的点
+        /// 移除claimed链表中 面中的点
         /// </summary>
         /// <param name="vtx"></param>
         /// <param name="face"></param>
@@ -307,6 +362,11 @@
                     "Point array too small for specified number of points");
             }
 
+            if (IsEndDebug)
+            {
+                Debug.Log("Original vertex count:"+points.Length.ToString());
+            }
+
             InitBuffers(nump);
             SetPoints(points, nump);
             BuildHull();
@@ -400,15 +460,15 @@
         /// </summary>
         protected void ComputeMaxAndMin()
         {
-            Vector3 max = new Vector3();
-            Vector3 min = new Vector3();
+            Vector3 max = Vector3.zero;
+            Vector3 min = Vector3.zero;
             for (int i = 0; i < 3; i++)
             {
+                //最大最小的顶点
                 maxVtxs[i] = minVtxs[i] = pointBuffer[0];
             }
 
-            max = (pointBuffer[0].pnt);
-            min = (pointBuffer[0].pnt);
+            max = min = pointBuffer[0].pnt;
             for (int i = 1; i < numPoints; i++)
             {
                 Vector3 pnt = pointBuffer[i].pnt;
@@ -492,26 +552,28 @@
             vtx[1] = minVtxs[imax];
 
             //三个顶点的距离为直线最远的距离
-            Vector3 u01 = new Vector3();
-            Vector3 diff02 = new Vector3();
-            Vector3 nrml = new Vector3();
-            Vector3 xprod = new Vector3();
+            Vector3 u01 = Vector3.zero;
+            Vector3 diff02 = Vector3.zero;
+            Vector3 nrml = Vector3.zero;
+            Vector3 xprod = Vector3.zero;
             float maxSqr = 0;
-            u01 = (vtx[1].pnt - vtx[0].pnt);
+            u01 = vtx[1].pnt - vtx[0].pnt;
             u01.Normalize();
             for (int i = 0; i < numPoints; i++)
             {
-                diff02 = (pointBuffer[i].pnt - vtx[0].pnt);
-                xprod = Vector3.Cross(u01, diff02);
-                float lenSqr = xprod.sqrMagnitude;
-                // 检测漏的点
-                if (lenSqr > maxSqr &&
-                    pointBuffer[i] != vtx[0] &&
-                    pointBuffer[i] != vtx[1])
+                //选取|A|*|B|*sin<A,B> 最大的
+                if (pointBuffer[i] != vtx[0] && pointBuffer[i] != vtx[1])
                 {
-                    maxSqr = lenSqr;
-                    vtx[2] = pointBuffer[i];
-                    nrml = (xprod);
+                    diff02 = pointBuffer[i].pnt - vtx[0].pnt;
+                    xprod = Vector3.Cross(u01, diff02);
+                    float lenSqr = xprod.sqrMagnitude;
+
+                    if (lenSqr > maxSqr)
+                    {
+                        maxSqr = lenSqr;
+                        vtx[2] = pointBuffer[i];
+                        nrml = xprod;
+                    }
                 }
             }
 
@@ -523,25 +585,26 @@
 
             nrml.Normalize();
 
-            //重新计算nrml以确保它对U01正常,否则在vtx[2]接近u01时可能会出错
-            Vector3 res = new Vector3();
 
-            res = Vector3.Dot(nrml, u01) * u01; // 沿u01的nrml的延长
+            //重新计算nrml以确保它对U01正常,否则在vtx[2]接近u01时可能会出错
+            Vector3 res = Vector3.zero;
+
+            res = Vector3.Dot(nrml, u01) * u01; // 沿u01的nrml的缩短
             nrml -= res;
             nrml.Normalize();
             float maxDist = 0;
             float d0 = Vector3.Dot(vtx[2].pnt, nrml);
             for (int i = 0; i < numPoints; i++)
             {
-                float dist = Mathf.Abs(Vector3.Dot(pointBuffer[i].pnt, nrml) - d0);
-                // 检测漏的点
-                if (dist > maxDist &&
-                    pointBuffer[i] != vtx[0] &&
-                    pointBuffer[i] != vtx[1] &&
-                    pointBuffer[i] != vtx[2])
+                if (pointBuffer[i] != vtx[0] && pointBuffer[i] != vtx[1] && pointBuffer[i] != vtx[2])
                 {
-                    maxDist = dist;
-                    vtx[3] = pointBuffer[i];
+                    float dist = Mathf.Abs(Vector3.Dot(pointBuffer[i].pnt, nrml) - d0);
+
+                    if (dist > maxDist)
+                    {
+                        maxDist = dist;
+                        vtx[3] = pointBuffer[i];
+                    }
                 }
             }
 
@@ -553,16 +616,18 @@
 
             if (IsDebug)
             {
-                Debug.Log("initial vertices:");
-                Debug.Log(vtx[0].index + ": " + vtx[0].pnt);
-                Debug.Log(vtx[1].index + ": " + vtx[1].pnt);
-                Debug.Log(vtx[2].index + ": " + vtx[2].pnt);
-                Debug.Log(vtx[3].index + ": " + vtx[3].pnt);
+                OutLog("initial vertices:\n"
+                    , "index->{", vtx[0].index.ToString(), "}: pos->{", vtx[0].pnt.ToString(), "}\n"
+                    , "index->{", vtx[1].index.ToString(), "}: pos->{", vtx[1].pnt.ToString(), "}\n"
+                    , "index->{", vtx[2].index.ToString(), "}: pos->{", vtx[2].pnt.ToString(), "}\n"
+                    , "index->{", vtx[3].index.ToString(), "}: pos->{", vtx[3].pnt.ToString(), "}\n");
             }
 
             Face[] tris = new Face[4];
+            //构建最初始的四面体
             if (Vector3.Dot(vtx[3].pnt, nrml) - d0 < 0)
             {
+                //判断方向
                 tris[0] = Face.CreateTriangle(vtx[0], vtx[1], vtx[2]);
                 tris[1] = Face.CreateTriangle(vtx[3], vtx[1], vtx[0]);
                 tris[2] = Face.CreateTriangle(vtx[3], vtx[2], vtx[1]);
@@ -595,6 +660,7 @@
 
             for (int i = 0; i < numPoints; i++)
             {
+                //遍历点 根据点到四边面的距离  把点区分加到点的链表里面
                 Vertex v = pointBuffer[i];
                 if (v == vtx[0] || v == vtx[1] || v == vtx[2] || v == vtx[3])
                 {
@@ -638,9 +704,21 @@
                 vtxs[i] = pointBuffer[vertexPointIndices[i]].pnt;
             }
 
+            if (IsEndDebug)
+            {
+                LogBuilder.Clear();
+                LogBuilder.Append("Vertices:").Append(vtxs.Length).Append("\n");
+                for (int i = 0; i < vtxs.Length; i++)
+                {
+                    Vector3 pnt = vtxs[i];
+                    LogBuilder.Append($"  {pnt.x},{pnt.y},{pnt.z}\n");
+                }
+
+                Debug.Log(LogBuilder.ToString());
+            }
+
             return vtxs;
         }
-
 
         /// <summary>
         /// 得到 x y z 组成的顶点,并且返回顶点长度
@@ -680,7 +758,7 @@
         /// 面片的数量
         /// </summary>
         /// <returns></returns>
-        public int NumFaces=> faces.Count;
+        public int NumFaces => faces.Count;
 
         /// <summary>
         /// 返回与此外壳相光联的面
@@ -691,10 +769,38 @@
         /// 返回整数数组的数组 给出的顶点每个面的索引
         /// </summary>
         /// <returns></returns>
-        public int[][] GetFaces()
+        public int[] GetFaces()
         {
-            return GetFaces(0);
+            int[][] faceIndices = GetFaces(0);
+            List<int> faces = new List<int>(faceIndices.Length * 3);
+            for (int i = 0; i < faceIndices.Length; i++)
+            {
+                for (int j = 2; j < faceIndices[i].Length; j++)
+                {
+                    faces.Add(faceIndices[i][0]);
+                    faces.Add(faceIndices[i][j - 1]);
+                    faces.Add(faceIndices[i][j]);
+                }
+            }
+
+            if (IsEndDebug)
+            {
+                LogBuilder.Clear();
+                LogBuilder.Append($"Faces:{faces.Count / 3}\n");
+                for (int i = 0; i < faces.Count / 3; i++)
+                {
+                    LogBuilder.Append("  ").Append(faces[3 * i + 0].ToString())
+                        .Append("  ").Append(faces[3 * i + 1].ToString())
+                        .Append("  ").Append(faces[3 * i + 2].ToString())
+                        .Append("\n");
+                }
+
+                Debug.Log(LogBuilder.ToString());
+            }
+
+            return faces.ToArray();
         }
+
 
 
         /// <summary>
@@ -784,15 +890,14 @@
                     AddPointToFace(vtx, maxFace);
                     if (IsDebug && vtx.index == findIndex)
                     {
-                        Debug.Log(findIndex + " CLAIMED BY " +
-                                  maxFace.GetVertexString());
+                        OutLog(findIndex.ToString(), " CLAIMED BY ", maxFace.ToString());
                     }
                 }
                 else
                 {
                     if (IsDebug && vtx.index == findIndex)
                     {
-                        Debug.Log(findIndex + " DISCARDED");
+                        OutLog(findIndex.ToString(), " DISCARDED");
                     }
                 }
             }
@@ -844,7 +949,7 @@
         private const int c_NoneConvex = 2;
 
         /// <summary>
-        /// 到对边的距离
+        /// 对边面的中心点到当前面的距离
         /// </summary>
         /// <param name="he"></param>
         /// <returns></returns>
@@ -867,10 +972,9 @@
             {
                 Face oppFace = hedge.OppositeFace;
                 bool merge = false;
-                float dist1, dist2;
                 if (mergeType == c_NoneConvex)
                 {
-                    //如果是非凸起的面,则进行合并
+                    //如果在新的面和面重叠
                     if (OppFaceDistance(hedge) > -tolerance ||
                         OppFaceDistance(hedge.opposite) > -tolerance)
                     {
@@ -883,7 +987,7 @@
                     //否则只需将面标记为非凸面,在第二遍进行处理
                     if (face.area > oppFace.area)
                     {
-                        if ((dist1 = OppFaceDistance(hedge)) > -tolerance)
+                        if (OppFaceDistance(hedge) > -tolerance)
                         {
                             merge = true;
                         }
@@ -909,9 +1013,7 @@
                 {
                     if (IsDebug)
                     {
-                        Debug.Log(
-                            "  merging " + face.GetVertexString() + "  and  " +
-                            oppFace.GetVertexString());
+                        OutLog("  merging ", face.ToString(), "  and  ", oppFace.ToString());
                     }
 
                     int numd = face.MergeAdjacentFace(hedge, discardedFaces);
@@ -922,8 +1024,7 @@
 
                     if (IsDebug)
                     {
-                        Debug.Log(
-                            "  result: " + face.GetVertexString());
+                        OutLog("  result: ", face.ToString());
                     }
 
                     return true;
@@ -952,10 +1053,11 @@
         {
             DeleteFacePoints(face, null);
             face.mark = Face.c_Deleted;
+
             if (IsDebug)
             {
-                Debug.Log("  visiting edge0 " + (edge0 == null ? "null" : edge0.getVertexString()));
-                Debug.Log("  visiting face " + face.GetVertexString());
+                OutLog("  visiting edge0 ", edge0 == null ? "null" : edge0.ToString()
+                    , "\n  visiting face ", face.ToString());
             }
 
             HalfEdge edge;
@@ -971,7 +1073,7 @@
 
             if (IsDebug)
             {
-                Debug.Log("    edge: " + (edge0 == null ? "null" : edge0.getVertexString()));
+                OutLog("    edge: ", edge0 == null ? "null" : edge0.ToString());
             }
 
             do
@@ -989,8 +1091,7 @@
                         horizon.Add(edge);
                         if (IsDebug)
                         {
-                            Debug.Log("  Adding horizon edge " +
-                                      edge.getVertexString());
+                            OutLog("  Adding horizon edge ", edge.ToString());
                         }
                     }
                 }
@@ -1011,7 +1112,7 @@
             Face face = Face.CreateTriangle(
                 eyeVtx, he.Tail, he.Head);
             faces.Add(face);
-            face.GetEdge(-1).Opposite = (he.Opposite);
+            face.GetEdge(-1).Opposite = he.Opposite;
             return face.GetEdge(0);
         }
 
@@ -1033,13 +1134,12 @@
                 HalfEdge hedgeSide = AddAdjoiningFace(eyeVtx, horizonHe);
                 if (IsDebug)
                 {
-                    Debug.Log(
-                        "new face: " + hedgeSide.face.GetVertexString());
+                    OutLog("new face: ", hedgeSide.face.ToString());
                 }
 
                 if (hedgeSidePrev != null)
                 {
-                    hedgeSide.next.Opposite = (hedgeSidePrev);
+                    hedgeSide.next.Opposite = hedgeSidePrev;
                 }
                 else
                 {
@@ -1054,7 +1154,7 @@
         }
 
         /// <summary>
-        /// 添加下个点
+        /// 是否要添加下个点到凸壳
         /// </summary>
         /// <returns></returns>
         protected Vertex NextPointToAdd()
@@ -1064,6 +1164,7 @@
                 Face eyeFace = claimed.First.face;
                 Vertex eyeVtx = null;
                 float maxDist = 0;
+                //遍历归属于当前面的外面的顶点 得到最远的点
                 for (Vertex vtx = eyeFace.outside;
                     vtx != null && vtx.face == eyeFace;
                     vtx = vtx.next)
@@ -1094,15 +1195,13 @@
             unclaimed.Clear();
             if (IsDebug)
             {
-                Debug.Log("Adding point: " + eyeVtx.index);
-                Debug.Log(
-                    " which is " + eyeVtx.face.DistanceToPlane(eyeVtx.pnt) +
-                    " above face " + eyeVtx.face.GetVertexString());
+                OutLog("Adding point: ", eyeVtx.index.ToString()
+                    , " which is ", eyeVtx.face.DistanceToPlane(eyeVtx.pnt).ToString()
+                    , " above face ", eyeVtx.face.ToString());
             }
 
             RemovePointFromFace(eyeVtx, eyeVtx.face);
             CalculateHorizon(eyeVtx.pnt, null, eyeVtx.face, horizon);
-            newFaces.Clear();
             AddNewFaces(newFaces, eyeVtx, horizon);
 
 
@@ -1111,8 +1210,7 @@
             {
                 if (face.mark == Face.c_Visible)
                 {
-                    while (DoAdjacentMerge(face, c_NoneconvexWrtLargerFace))
-                        ;
+                    while (DoAdjacentMerge(face, c_NoneconvexWrtLargerFace)) ;
                 }
             }
 
@@ -1122,7 +1220,7 @@
                 if (face.mark == Face.c_NoneConvex)
                 {
                     face.mark = Face.c_Visible;
-                    while (DoAdjacentMerge(face, c_NoneConvex));
+                    while (DoAdjacentMerge(face, c_NoneConvex)) ;
                 }
             }
 
@@ -1144,19 +1242,19 @@
                 cnt++;
                 if (IsDebug)
                 {
-                    Debug.Log("iteration " + cnt + " done");
+                    OutLog("iteration ", cnt.ToString(), " done");
                 }
             }
 
             ReindexFacesAndVertices();
             if (IsDebug)
             {
-                Debug.Log("hull done");
+                OutLog("hull done");
             }
         }
 
         /// <summary>
-        /// 标记face上的顶点
+        /// 重新建立索引用
         /// </summary>
         /// <param name="face"></param>
         /// <param name="mark"></param>
@@ -1208,6 +1306,20 @@
                     vertexPointIndices[numVertices] = i;
                     vtx.index = numVertices++;
                 }
+            }
+        }
+
+        public void OutLog(params string[] msgs)
+        {
+            if (IsDebug)
+            {
+                LogBuilder.Clear();
+                foreach (var msg in msgs)
+                {
+                    LogBuilder.Append(msg);
+                }
+
+                Debug.Log(LogBuilder.ToString());
             }
         }
     }

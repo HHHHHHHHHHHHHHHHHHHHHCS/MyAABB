@@ -70,7 +70,7 @@
         public int mark = c_Visible;
 
         /// <summary>
-        /// 外面的顶点
+        /// 上一次最外面的点
         /// </summary>
         public Vertex outside;
 
@@ -186,7 +186,7 @@
             if (numv != numVerts)
             {
                 throw new Exception(
-                    "face " + GetVertexString() + " numVerts=" + numVerts + " should be " + numv);
+                    "face " + ToString() + " numVerts=" + numVerts + " should be " + numv);
             }
         }
 
@@ -220,8 +220,7 @@
         /// <param name="v2"></param>
         /// <param name="minArea"></param>
         /// <returns></returns>
-        public static Face CreateTriangle(Vertex v0, Vertex v1, Vertex v2,
-            float minArea)
+        public static Face CreateTriangle(Vertex v0, Vertex v1, Vertex v2, float minArea)
         {
             Face face = new Face();
             HalfEdge he0 = new HalfEdge(v0, face);
@@ -361,15 +360,6 @@
         /// </summary>
         public int NumVertices => numVerts;
 
-        /// <summary>
-        /// 输出信息
-        /// </summary>
-        /// <returns></returns>
-        public string GetVertexString()
-        {
-            return ToString();
-        }
-
         public override string ToString()
         {
             string s = null;
@@ -478,7 +468,7 @@
 
             if (numVerts < 3)
             {
-                throw new Exception("degenerate face: " + GetVertexString());
+                throw new Exception("degenerate face: " + ToString());
             }
 
             do
@@ -486,39 +476,39 @@
                 HalfEdge hedgeOpp = hedge.Opposite;
                 if (hedgeOpp == null)
                 {
-                    throw new Exception("face " + GetVertexString() + ": " +
-                                        "unreflected half edge " + hedge.getVertexString());
+                    throw new Exception("face " + ToString() + ": " +
+                                        "unreflected half edge " + hedge.ToString());
                 }
                 else if (hedgeOpp.Opposite != hedge)
                 {
                     throw new Exception(
-                        "face " + GetVertexString() + ": " +
-                        "opposite half edge " + hedgeOpp.getVertexString() +
+                        "face " + ToString() + ": " +
+                        "opposite half edge " + hedgeOpp.ToString() +
                         " has opposite " +
-                        hedgeOpp.Opposite.getVertexString());
+                        hedgeOpp.Opposite.ToString());
                 }
 
                 if (hedgeOpp.Head != hedge.Tail ||
                     hedge.Head != hedgeOpp.Tail)
                 {
                     throw new Exception(
-                        "face " + GetVertexString() + ": " +
-                        "half edge " + hedge.getVertexString() +
-                        " reflected by " + hedgeOpp.getVertexString());
+                        "face " + ToString() + ": " +
+                        "half edge " + hedge.ToString() +
+                        " reflected by " + hedgeOpp.ToString());
                 }
 
                 Face oppFace = hedgeOpp.face;
                 if (oppFace == null)
                 {
                     throw new Exception(
-                        "face " + GetVertexString() + ": " +
-                        "no face on half edge " + hedgeOpp.getVertexString());
+                        "face " + ToString() + ": " +
+                        "no face on half edge " + hedgeOpp.ToString());
                 }
                 else if (oppFace.mark == c_Deleted)
                 {
                     throw new Exception(
-                        "face " + GetVertexString() + ": " +
-                        "opposite face " + oppFace.GetVertexString() +
+                        "face " + ToString() + ": " +
+                        "opposite face " + oppFace.ToString() +
                         " not on hull");
                 }
 
@@ -535,7 +525,7 @@
             if (numv != numVerts)
             {
                 throw new Exception(
-                    "face " + GetVertexString() + " numVerts=" + numVerts + " should be " + numv);
+                    "face " + ToString() + " numVerts=" + numVerts + " should be " + numv);
             }
         }
 
@@ -623,7 +613,7 @@
             Vector3 d2 = p2 - p0;
 
 
-            return Vector3.Cross(d1,d2).sqrMagnitude;
+            return Vector3.Cross(d1, d2).sqrMagnitude;
         }
 
         /// <summary>

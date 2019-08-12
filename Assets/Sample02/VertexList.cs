@@ -88,7 +88,7 @@
         }
 
         /// <summary>
-        /// 删除两个连续的顶点
+        /// 删除两个顶点
         /// </summary>
         /// <param name="vtx1"></param>
         /// <param name="vtx2"></param>

@@ -54,5 +54,10 @@ namespace QHull
             pnt = new Vector3(x, y, z);
             index = idx;
         }
+
+        public override string ToString()
+        {
+            return $"index->{index} : pos->{pnt.ToString()}";
+        }
     }
 }

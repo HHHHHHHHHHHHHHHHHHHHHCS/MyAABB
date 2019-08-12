@@ -1,5 +1,4 @@
-﻿
-namespace QHull
+﻿namespace QHull
 {
     using System;
     using UnityEngine;
@@ -109,24 +108,6 @@ namespace QHull
         public Face OppositeFace => opposite?.face;
 
         /// <summary>
-        /// 输出边信息 包含头点和尾点
-        /// </summary>
-        /// <returns></returns>
-        public string getVertexString()
-        {
-            if (Tail != null)
-            {
-                return "" +
-                       Tail.index + "-" +
-                       Head.index;
-            }
-            else
-            {
-                return "?-" + Head.index;
-            }
-        }
-
-        /// <summary>
         /// 头点到尾点的距离
         /// </summary>
         /// <returns></returns>
@@ -158,5 +139,18 @@ namespace QHull
             }
         }
 
+        public override string ToString()
+        {
+            if (Tail != null)
+            {
+                return "" +
+                       Tail.index + "-" +
+                       Head.index;
+            }
+            else
+            {
+                return "?-" + Head.index;
+            }
+        }
     }
 }
