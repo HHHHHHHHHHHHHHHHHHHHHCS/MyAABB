@@ -9,7 +9,7 @@ public class CreateColliderWindow : EditorWindow
 {
     //注意 模型要-90  而且 File0.1cm->unity0.01m
 
-    public string path = "";
+    public string folderPath = "";
     public List<string> objsPath = new List<string>();
     public List<string> removePath = new List<string>();
 
@@ -36,16 +36,16 @@ public class CreateColliderWindow : EditorWindow
         GUILayout.BeginHorizontal();
         style.fontSize = 20;
         style.fontStyle = FontStyle.Bold;
-        GUILayout.Label("Path:" + path, style);
+        GUILayout.Label("Path:" + folderPath, style);
         if (GUILayout.Button("选择", GUILayout.Width(100f)))
         {
-            var str = EditorUtility.OpenFolderPanel("模型文件夹", path, "");
+            var str = EditorUtility.OpenFolderPanel("模型文件夹", folderPath, "");
             if (!string.IsNullOrEmpty(str))
             {
-                path = str.Remove(0, Application.dataPath.Length - 6);
+                folderPath = str.Remove(0, Application.dataPath.Length - 6);
 
                 objsPath.Clear();
-                string[] allPath = AssetDatabase.FindAssets("t:Model", new[] {path});
+                string[] allPath = AssetDatabase.FindAssets("t:Model", new[] {folderPath});
                 foreach (var s in allPath)
                 {
                     var path = AssetDatabase.GUIDToAssetPath(s);
@@ -70,12 +70,16 @@ public class CreateColliderWindow : EditorWindow
         GUILayout.FlexibleSpace();
         if (GUILayout.Button("生成", GUILayout.Width(100f)))
         {
-            foreach (var path in objsPath)
+            for (int i = 0; i < objsPath.Count; i++)
             {
+                var path = objsPath[i];
+                EditorUtility.DisplayProgressBar("处理Mesh Collider", $"处理个数{i}/{objsPath.Count}", (float)i / objsPath.Count);
                 var mesh = CalcMesh(path);
                 var newPath = path.Substring(0, path.LastIndexOf('.'));
-                AssetDatabase.CreateAsset(mesh, newPath+"_mc.asset");
+                AssetDatabase.CreateAsset(mesh, newPath + "_mc.asset");
             }
+            EditorUtility.ClearProgressBar();
+            AssetDatabase.Refresh();
         }
         GUILayout.EndHorizontal();
 
