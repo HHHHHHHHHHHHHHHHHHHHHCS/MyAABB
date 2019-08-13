@@ -57,7 +57,7 @@ namespace QHull
         /// <summary>
         /// 是否输出最终Debug
         /// </summary>
-        public bool IsEndDebug { get; set; } = true;
+        public bool IsEndDebug { get; set; } = false;
 
         /// <summary>
         /// log输出用

@@ -3,48 +3,52 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EightBlockTree : MonoBehaviour
+public class EightBlockTree
 {
     public const int c_cutCount = 5;
-    public const float c_sameDistance = 0.001f;//相近的距离
+    public const float c_sameDistance = 0.001f; //相近的距离
 
     public Vector3[] Build(Vector3[] _points, int _cutCount = c_cutCount)
     {
-        List<Vector3> pointList = new List<Vector3>(_points);
         int count = (int) Mathf.Pow(2, _cutCount);
         int border = count - 1;
 
-        EightPoint ep = FindFirstMaxMin(pointList);
-        List<Vector3> result = new List<Vector3>(count);
+        EightPoint ep = FindFirstMaxMin(_points);
         Vector3 min = new Vector3(ep.xMin, ep.yMin, ep.zMin);
         Vector3 max = new Vector3(ep.xMax, ep.yMax, ep.zMax);
         Vector3 step = (max - min) / count;
-        Vector3 start;
-        //TODO:pos-min)/step
-        for (int i = 0; i < count; i++)
+        List<Vector3Int> blocks = new List<Vector3Int>(count);
+        foreach (var point in _points)
         {
-            for (int j = 0; j < count; j++)
+            int x = (int)Mathf.Clamp((point.x - min.x) / step.x, 0, border);
+            int y = (int)Mathf.Clamp((point.y - min.y) / step.y, 0, border);
+            int z = (int)Mathf.Clamp((point.z - min.z) / step.z, 0, border);
+            Vector3Int v3int = new Vector3Int(x,y,z);
+            bool canAdd = true;
+            foreach (var block in blocks)
             {
-                for (int k = 0; k < count; k++)
+                if (block.x == x && block.y == y && block.z == z)
                 {
-                    if (pointList.Count <= 0)
-                    {
-                        //强行跳出
-                        i = j = k = count;
-                        break;
-                    }
-
-                    start.x = min.x + i * step.x;
-                    start.y = min.y + j * step.y;
-                    start.z = min.z + k * step.z;
-
-                    ep.Reset(start, step);
-                    if (CheckRemovePoint(ep, pointList, i == border || j == border || k == border))
-                    {
-                        ep.AddEightPoints(result);
-                    }
+                    canAdd = false;
+                    break;
                 }
             }
+
+            if (canAdd)
+            {
+                blocks.Add(v3int);
+            }
+        }
+
+        List<Vector3> result = new List<Vector3>(count);
+        Vector3 start = Vector3.zero;
+        foreach (var block in blocks)
+        {
+            start.x = min.x + block.x * step.x;
+            start.y = min.y + block.y * step.y;
+            start.z = min.z + block.z * step.z;
+            ep.Reset(start,step);
+            ep.AddEightPoints(result);
         }
 
         RemoveRepeatedPoint(result);
@@ -57,10 +61,10 @@ public class EightBlockTree : MonoBehaviour
     /// </summary>
     /// <param name="points"></param>
     /// <returns></returns>
-    public EightPoint FindFirstMaxMin(List<Vector3> points)
+    public EightPoint FindFirstMaxMin(Vector3[] points)
     {
         EightPoint ep = new EightPoint();
-        if (points.Count > 0)
+        if (points.Length > 0)
         {
             ep.xMin = ep.xMax = points[0].x;
             ep.yMin = ep.yMax = points[0].y;
@@ -102,29 +106,6 @@ public class EightBlockTree : MonoBehaviour
         }
 
         return ep;
-    }
-
-    /// <summary>
-    /// 删除空的盒子
-    /// </summary>
-    /// <param name="_ep"></param>
-    /// <param name="_points"></param>
-    /// <param name="isBorder"></param>
-    /// <returns></returns>
-    public bool CheckRemovePoint(EightPoint _ep, List<Vector3> _points, bool isBorder = false)
-    {
-        bool result = false;
-
-        for (int i = _points.Count - 1; i >= 0; i--)
-        {
-            if (_ep.CheckPointInBlock(_points[i], isBorder))
-            {
-                result = true;
-                _points.RemoveAt(i);
-            }
-        }
-
-        return result;
     }
 
 

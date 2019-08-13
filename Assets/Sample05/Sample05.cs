@@ -5,7 +5,7 @@ using QHull;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
-public class Sample04 : MonoBehaviour
+public class Sample05 : MonoBehaviour
 {
     public MeshFilter ori, col;
     public bool useEight;
@@ -32,4 +32,6 @@ public class Sample04 : MonoBehaviour
         sw.Stop();
         Debug.Log(sw.Elapsed);
     }
+
+
 }
