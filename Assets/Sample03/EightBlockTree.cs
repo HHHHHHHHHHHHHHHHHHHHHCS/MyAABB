@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 public class EightBlockTree
 {
-    public const int c_cutCount = 5;
+    public const int c_cutCount = 3;
     public const float c_sameDistance = 0.001f; //相近的距离
 
     public Vector3[] Build(Vector3[] _points, int _cutCount = c_cutCount)
@@ -18,16 +20,17 @@ public class EightBlockTree
         Vector3 max = new Vector3(ep.xMax, ep.yMax, ep.zMax);
         Vector3 step = (max - min) / count;
         List<Vector3Int> blocks = new List<Vector3Int>(count);
+        Vector3Int v3int = Vector3Int.zero;
         foreach (var point in _points)
         {
-            int x = (int)Mathf.Clamp((point.x - min.x) / step.x, 0, border);
-            int y = (int)Mathf.Clamp((point.y - min.y) / step.y, 0, border);
-            int z = (int)Mathf.Clamp((point.z - min.z) / step.z, 0, border);
-            Vector3Int v3int = new Vector3Int(x,y,z);
+            v3int.x = (int) Mathf.Clamp((point.x - min.x) / step.x, 0, border);
+            v3int.y = (int) Mathf.Clamp((point.y - min.y) / step.y, 0, border);
+            v3int.z = (int) Mathf.Clamp((point.z - min.z) / step.z, 0, border);
+
             bool canAdd = true;
             foreach (var block in blocks)
             {
-                if (block.x == x && block.y == y && block.z == z)
+                if (block.x == v3int.x && block.y == v3int.y && block.z == v3int.z)
                 {
                     canAdd = false;
                     break;
@@ -40,19 +43,21 @@ public class EightBlockTree
             }
         }
 
-        List<Vector3> result = new List<Vector3>(count);
+        Vector3[] result = new Vector3[blocks.Count * 8];
         Vector3 start = Vector3.zero;
-        foreach (var block in blocks)
+
+        for (int i = 0; i < blocks.Count; i++)
         {
+            var block = blocks[i];
             start.x = min.x + block.x * step.x;
             start.y = min.y + block.y * step.y;
             start.z = min.z + block.z * step.z;
-            ep.Reset(start,step);
-            ep.AddEightPoints(result);
+            ep.OnInit(start, step);
+            ep.AddEightPoints(result, i * 8);
         }
 
         RemoveRepeatedPoint(result);
-        return result.ToArray();
+        return result;
     }
 
 
@@ -113,17 +118,12 @@ public class EightBlockTree
     /// 删除重复的点 虽然在QHull中也会判断 提前剪枝
     /// </summary>
     /// <param name="eps"></param>
-    public void RemoveRepeatedPoint(List<Vector3> eps)
+    public void RemoveRepeatedPoint(Vector3[] eps)
     {
-        List<int> removeIndexs = new List<int>();
         Vector3 v3 = Vector3.zero;
-        for (int i = eps.Count - 1; i >= 0; i--)
+        int end = eps.Length - 1;
+        for (int i = eps.Length - 1; i >= 0; i--)
         {
-            if (removeIndexs.Contains(i))
-            {
-                continue;
-            }
-
             var oriPoint = eps[i];
             for (int j = i - 1; j >= 0; j--)
             {
@@ -132,16 +132,13 @@ public class EightBlockTree
                 v3.z = Mathf.Abs(oriPoint.z - eps[j].z);
                 if (v3.x + v3.y + v3.z <= c_sameDistance)
                 {
-                    removeIndexs.Add(j);
+                    eps[i] = eps[end];
+                    end--;
+                    break;
                 }
             }
         }
 
-        //倒序删除
-        removeIndexs.Sort((x, y) => x < y ? 1 : -1);
-        foreach (var index in removeIndexs)
-        {
-            eps.RemoveAt(index);
-        }
+        Array.Resize(ref eps,end+1);
     }
 }

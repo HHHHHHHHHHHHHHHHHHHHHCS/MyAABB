@@ -4,81 +4,45 @@ using UnityEngine;
 
 public class EightPoint
 {
+    private static Vector3 point = Vector3.zero;
+
     public float xMin, xMax, yMin, yMax, zMin, zMax;
-
-
-    private Vector3 center = Vector3.zero;
-
-
-    public Vector3 Center
-    {
-        get
-        {
-            center.x = (xMax + xMin) / 2;
-            center.y = (yMax + yMin) / 2;
-            center.z = (zMax + zMin) / 2;
-            return center;
-        }
-    }
 
     public EightPoint()
     {
     }
 
-    public EightPoint(float xMin, float xMax, float yMin, float yMax, float zMin, float zMax)
+    public void OnInit(Vector3 start, Vector3 offset)
     {
-        this.xMin = xMin;
-        this.xMax = xMax;
-        this.yMin = yMin;
-        this.yMax = yMax;
-        this.zMin = zMin;
-        this.zMax = zMax;
-    }
+        xMax = start.x + offset.x;
+        yMax = start.y + offset.y;
+        zMax = start.z + offset.z;
 
-    public void Reset(Vector3 start, Vector3 offset)
-    {
-        this.xMax = start.x + offset.x;
-        this.yMax = start.y + offset.y;
-        this.zMax = start.z + offset.z;
-
-        this.xMin = start.x;
-        this.yMin = start.y;
-        this.zMin = start.z;
+        xMin = start.x;
+        yMin = start.y;
+        zMin = start.z;
     }
 
     /// <summary>
     /// 得到block的八个点
     /// </summary>
-    public List<Vector3> AddEightPoints(List<Vector3> list = null)
+    public void AddEightPoints(Vector3[] arr = null, int index = 0)
     {
-        if (list == null)
-        {
-            list = new List<Vector3>(8);
-        }
-
-        list.Add(new Vector3(xMin, yMin, zMin));
-        list.Add(new Vector3(xMax, yMin, zMin));
-        list.Add(new Vector3(xMin, yMin, zMax));
-        list.Add(new Vector3(xMax, yMin, zMax));
-        list.Add(new Vector3(xMin, yMax, zMin));
-        list.Add(new Vector3(xMax, yMax, zMin));
-        list.Add(new Vector3(xMin, yMax, zMax));
-        list.Add(new Vector3(xMax, yMax, zMax));
-
-        return list;
+        arr[index + 0] = ResetPoint(xMin, yMin, zMin);
+        arr[index + 1] = ResetPoint(xMax, yMin, zMin);
+        arr[index + 2] = ResetPoint(xMin, yMin, zMax);
+        arr[index + 3] = ResetPoint(xMax, yMin, zMax);
+        arr[index + 4] = ResetPoint(xMin, yMax, zMin);
+        arr[index + 5] = ResetPoint(xMax, yMax, zMin);
+        arr[index + 6] = ResetPoint(xMin, yMax, zMax);
+        arr[index + 7] = ResetPoint(xMax, yMax, zMax);
     }
 
-    public bool CheckPointInBlock(Vector3 point, bool isBorder = false)
+    public Vector3 ResetPoint(float x, float y, float z)
     {
-        if (isBorder)
-        {
-            return xMin <= point.x && point.x <= xMax
-                                   && yMin <= point.y && point.y <= yMax
-                                   && zMin <= point.z && point.z <= zMax;
-        }
-
-        return xMin <= point.x && point.x < xMax
-                               && yMin <= point.y && point.y < yMax
-                               && zMin <= point.z && point.z < zMax;
+        point.x = x;
+        point.y = y;
+        point.z = z;
+        return point;
     }
 }
