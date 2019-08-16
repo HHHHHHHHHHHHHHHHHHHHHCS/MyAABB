@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -16,7 +17,7 @@ public class CreateColliderWindow : EditorWindow
     public List<string> objsPath = new List<string>();
     public List<string> removePath = new List<string>();
 
-    private readonly string[] blockLvString = {"1", "2", "3", "4", "5", "6", "7", "8"};
+    private readonly string[] blockLvString = { "1", "2", "3", "4", "5", "6", "7", "8" };
     private readonly GUIStyle style = new GUIStyle();
 
 
@@ -51,7 +52,7 @@ public class CreateColliderWindow : EditorWindow
                 folderPath = str.Remove(0, Application.dataPath.Length - 6);
 
                 objsPath.Clear();
-                string[] allPath = AssetDatabase.FindAssets("t:Model", new[] {folderPath});
+                string[] allPath = AssetDatabase.FindAssets("t:Model", new[] { folderPath });
                 foreach (var s in allPath)
                 {
                     var path = AssetDatabase.GUIDToAssetPath(s);
@@ -91,7 +92,7 @@ public class CreateColliderWindow : EditorWindow
                 {
                     var path = objsPath[i];
                     EditorUtility.DisplayProgressBar("处理Mesh Collider", $"处理个数{i}/{objsPath.Count}",
-                        (float) i / objsPath.Count);
+                        (float)i / objsPath.Count);
                     var mesh = CalcMesh(path, _useEightBlocks, _blockLv);
                     var newPath = path.Substring(0, path.LastIndexOf('.'));
                     AssetDatabase.CreateAsset(mesh, newPath + endPath);
@@ -114,7 +115,7 @@ public class CreateColliderWindow : EditorWindow
             {
                 var path = objsPath[i];
                 EditorUtility.DisplayProgressBar("处理Mesh Collider", $"处理个数{i}/{objsPath.Count}",
-                    (float) i / objsPath.Count);
+                    (float)i / objsPath.Count);
                 var mesh = CalcMesh(path, useEightBlocks, blockLv);
                 var newPath = path.Substring(0, path.LastIndexOf('.'));
                 //AssetDatabase.CreateAsset(mesh, newPath + endPath);
@@ -195,9 +196,10 @@ public class CreateColliderWindow : EditorWindow
 
         int[] faceIndices = hull.GetFaces();
 
-        Mesh newMesh = new Mesh {vertices = vertices, triangles = faceIndices};
+        Mesh newMesh = new Mesh { vertices = vertices, triangles = faceIndices };
         AppendLogLine("  End vertices:", vertices.Length.ToString());
         AppendLogLine("  End faceIndices:", faceIndices.Length.ToString());
+
         return newMesh;
     }
 

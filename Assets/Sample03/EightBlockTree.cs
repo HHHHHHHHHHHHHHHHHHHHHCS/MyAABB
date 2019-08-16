@@ -8,7 +8,7 @@ using Debug = UnityEngine.Debug;
 public class EightBlockTree
 {
     public const int c_cutCount = 3;
-    public const float c_sameDistance = 0.001f; //相近的距离
+    public const float c_sameDistance = 0.0001f; //相近的距离 QuaickHull是0.00000001f
 
     public Vector3[] Build(Vector3[] _points, int _cutCount = c_cutCount)
     {
@@ -21,6 +21,7 @@ public class EightBlockTree
         Vector3 step = (max - min) / count;
         List<Vector3Int> blocks = new List<Vector3Int>(count);
         Vector3Int v3int = Vector3Int.zero;
+
         foreach (var point in _points)
         {
             v3int.x = (int) Mathf.Clamp((point.x - min.x) / step.x, 0, border);
@@ -63,6 +64,7 @@ public class EightBlockTree
 
     /// <summary>
     /// 找到第一次最大小的点
+    /// 如果是面片会自己加框
     /// </summary>
     /// <param name="points"></param>
     /// <returns></returns>
@@ -110,6 +112,24 @@ public class EightBlockTree
             }
         }
 
+        if (ep.xMax - ep.xMin < c_sameDistance)
+        {
+            ep.xMin -= c_sameDistance;
+            ep.xMax += c_sameDistance;
+        }
+
+        if (ep.yMax - ep.yMin < c_sameDistance)
+        {
+            ep.yMin -= c_sameDistance;
+            ep.yMax += c_sameDistance;
+        }
+
+        if (ep.zMax - ep.zMin < c_sameDistance)
+        {
+            ep.zMin -= c_sameDistance;
+            ep.zMax += c_sameDistance;
+        }
+
         return ep;
     }
 
@@ -127,10 +147,10 @@ public class EightBlockTree
             var oriPoint = eps[i];
             for (int j = i - 1; j >= 0; j--)
             {
-                v3.x = Mathf.Abs(oriPoint.x - eps[j].x);
-                v3.y = Mathf.Abs(oriPoint.y - eps[j].y);
-                v3.z = Mathf.Abs(oriPoint.z - eps[j].z);
-                if (v3.x + v3.y + v3.z <= c_sameDistance)
+                v3.x = oriPoint.x - eps[j].x;
+                v3.y = oriPoint.y - eps[j].y;
+                v3.z = oriPoint.z - eps[j].z;
+                if (v3.x * v3.x + v3.y * v3.y + v3.z * v3.z <= c_sameDistance)
                 {
                     eps[i] = eps[end];
                     end--;
@@ -139,6 +159,6 @@ public class EightBlockTree
             }
         }
 
-        Array.Resize(ref eps,end+1);
+        Array.Resize(ref eps, end + 1);
     }
 }
